@@ -1,0 +1,6 @@
+gLCD Library
+
+A library for Arduino which allows the communication of the Arduino with a Nokia 128px x 128px display such as those sold by SparkFun Electronics.
+The library allows communication with both the Phillips and EPSON controllers, so should work with almost all of these screens.
+
+Please see the example sketches and also the gLCD.h header file for extensive information as to what functions are in the library and how they work.
