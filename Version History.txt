@@ -1,0 +1,67 @@
+Sparkfun Nokia knockoff screen 128x128 controller. Only works with specific screens - EPSON controller chips
+
+Written by Thomas Carpenter (2011)
+
+==================================================================================================
+Current Library Version: 2.0
+
+   Date    | Version | Changes
+-----------+---------+-----------------------------------------------------------------------------
+03/12/2011 |    2.0  | - Contrast macro can now be called at any point in the program (as long as it is
+	   |         |   AFTER the init() call). This means that the contrast can now be changed as many
+	   |         |   times as you like during the program, without the need to reinitialise the screen.
+	   |         | 
+	   |         | - Library now supports Ardiuno 1.0
+	   |         |
+	   |---------|
+	   |         |
+06/11/2011 |    1.4  | - Corrected the drawing of borders when the Box function is called, where before
+           |         |   it used to get the length of the x and y axis lines switched
+	   |         | - Added two new functions: displayOff(), which turns the display off to save power,
+	   |         |   and displayOn(), which turns it back on again.
+           |         |
+22/10/2011 |    1.3  | - Added ability to invert phillips display
+	   |         |
+14/10/2011 |    1.2  | - Written a faster digital write set of functions. This speeds up the display by a factor of 10
+	   |         |
+09/10/2011 |    1.1  | - Character data array is now stored in PROGMEM to free up 480Bytes of SRAM
+	   |	1.0  | - Major rewrite of printing to screen which has massively increased performance.
+	   |         |
+           |         | - Circles are now filled MUCH faster.
+           |         | - Test pattern renders even faster.
+           |         | - More control over colour of circles and boxes.
+	   |         |
+	   |---------|
+           |         |
+08/10/2011 |	0.8  | - Fixed Issue with Window() macro and the Epson controller - First pixel was drawn in wrong place.
+	   |         |   This required changing the scan direction of the Epson screen, and of the Phillips screen so that
+	   |         |   both render the same image in the same orientation.
+	   |         | - testPattern() now more efficient and renders much faster.
+	   |    0.7  | - Contrast depends heavily on the type of screen, so new function to set contrast has been added.
+	   |         | - Added support for Phillips displays, and displays whose colour is inverted (i.e White = Black)
+	   |    0.6  | - Fixed Lines not drawing correctly if Y1 > Y2
+	   |    0.5  | - Added Examples to show how to use functions
+	   |         | - Added Circle drawing algorithm
+	   |         | - Can now select colour of the Line() and Plot() as foreground or background colour
+	   |    0.4  | - Added co-ordinate offset. (On some displays, (0,0) is not visible) 
+	   |         |   Window() function has had the offset built in, as all functions use
+	   |         |   it to draw anything on the screen.
+	   |         |   Offset is specified when calling Init();
+           |         |
+07/10/2011 |    0.3  | - Added testPattern Function.
+           |    0.2  | - Fixed functions not working correctly if X or Y were greater than 126.
+	   |         | - Increased speed of software SPI
+	   |         | - Added Version history
+	   |         | - Simplified Box formatting
+	   |         |
+06/10/2011 |    0.1  | - Initial library created with some basic functions
+           |         |
+
+===================================================================================================
+
+Wishlist/To Do:
+	- Detect which controller the screen has		
+	
+	- Draw Triangles (Filled and Unfilled)
+
+===================================================================================================
