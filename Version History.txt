@@ -1,12 +1,17 @@
-Sparkfun Nokia knockoff screen 128x128 controller. Only works with specific screens - EPSON controller chips
-
+Sparkfun Nokia knockoff screen 128x128 controller. 
+Should work with MOST of these screens (controller selected by init() call)
 Written by Thomas Carpenter (2011)
 
 ==================================================================================================
-Current Library Version: 2.0
+Current Library Version: 2.2
 
    Date    | Version | Changes
 -----------+---------+-----------------------------------------------------------------------------
+05/01/2011 |    2.2  | - Corrected printing of Wide fonts (thanks Sparkfun Member #8577)
+	   |         |
+22/12/2011 |    2.1  | - updated twoPixels() to take 6 values (R1,G1,B1,R2,G2,B2) aswell as still being able
+	   |         |   to take the 3 it did before (R1G1,B1R2,G2B2)
+	   |         |
 03/12/2011 |    2.0  | - Contrast macro can now be called at any point in the program (as long as it is
 	   |         |   AFTER the init() call). This means that the contrast can now be changed as many
 	   |         |   times as you like during the program, without the need to reinitialise the screen.
