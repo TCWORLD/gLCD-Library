@@ -1,12 +1,15 @@
 Sparkfun Nokia knockoff screen 128x128 controller. 
 Should work with MOST of these screens (controller selected by init() call)
-Written by Thomas Carpenter (2011)
+Written by Thomas Carpenter (2011-2012)
 
 ==================================================================================================
-Current Library Version: 2.2
+Current Library Version: 2.3
 
    Date    | Version | Changes
 -----------+---------+-----------------------------------------------------------------------------
+18/01/2011 |    2.3  | - Update Phillips Init() call to also work with screens that would scan
+	   |         |   top to bottom before, and thus display fonts wrong (thanks github member: mumps)
+	   |         |
 05/01/2011 |    2.2  | - Corrected printing of Wide fonts (thanks Sparkfun Member #8577)
 	   |         |
 22/12/2011 |    2.1  | - updated twoPixels() to take 6 values (R1,G1,B1,R2,G2,B2) aswell as still being able

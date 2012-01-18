@@ -1,6 +1,29 @@
-gLCD Library
+gLCD Library for Arduino 0022,0023, and 1.0
 
 A library for Arduino which allows the communication of the Arduino with a Nokia 128px x 128px display such as those sold by SparkFun Electronics.
-The library allows communication with both the Phillips and EPSON controllers, so should work with almost all of these screens.
+The library allows communication with both the Phillips and EPSON controllers, so should work with almost all of these screens(1).
+
+Note 1:
+        For EPSON Displays:
+    Init(Xzero, Yzero, InvertColour) - Initialise the display. This may need changing for certain screens. 
+                                       Xzero and Yzero are (0,0) offset. Invert colour can be used if White
+                                       appears as black, which it does on some displays.(1 = Invert, 0 = Normal)
+
+        For Phillips Displays:
+    Init(Xzero, Yzero, InvertColour, Phillips, xReverse) - If a fourth and fifth variable is defined, then the Phillips
+                                                           routines will be used. The fifth variable controls scan direction.
+                                                               
+                                                           xRevese controls how the phillips display will behave, and requires
+                                                           some trial and error to get right.
+                                                           First, try setting it to 0 and observe which way the screen prints
+                                                           the image onto the screen.
+                                                           -If it builds up the image from the LEFT(connector end is the top):
+                                                            0 is correct.
+                                                           -If it builds up from the RIGTH:
+                                                            set it to 1 (it should now scan from the LEFT)
+                                                           -If it builds up from the BOTTOM:
+                                                            set it to 2 (it should now scan from the LEFT, else try 3)
+                                                           -If it builds up from the TOP:
+                                                            set it to 3 (it should now scan from the LEFT, else try 2)
 
 Please see the example sketches and also the gLCD.h header file for extensive information as to what functions are in the library and how they work.
