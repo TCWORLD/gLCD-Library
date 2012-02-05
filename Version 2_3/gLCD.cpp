@@ -584,15 +584,15 @@ void gLCD::Init(char Xzero, char Yzero, boolean InvertColour, boolean Phillips, 
 		
 		SendByte(_command, 0x36);            //Configure Display
 		if (xReverse & 1){ //When xReverse is one, then the value of this parameter is ajusted so that x is mirrored from normal.
-			_normalScan = 0x60 - ((xRevese & 2)<<4);
-			_inverseScan = 0xC0 + ((xRevese & 2)<<4);
+			_normalScan = 0x60 - ((xReverse & 2)<<4);
+			_inverseScan = 0xC0 + ((xReverse & 2)<<4);
 			SendByte(_parameter, _normalScan);      //RGB order, mirror display x or y. 0x60 = RGB, no mirroring
 													//									0x68 = BGR, no mirroring
 													//									0xA0 = RGB, mirror X and Y
 													//									0xA8 = BGR, mirror X and Y
 		} else {
-			_normalScan = 0x20 - ((xRevese & 2)<<4);
-			_inverseScan = 0x80 + ((xRevese & 2)<<4);
+			_normalScan = 0x20 - ((xReverse & 2)<<4);
+			_inverseScan = 0x80 + ((xReverse & 2)<<4);
 			SendByte(_parameter, _normalScan);      //RGB order, mirror display x or y. 0x20 = RGB, no mirroring
 													//									0x28 = BGR, no mirroring
 													//									0xE0 = RGB, mirror X and Y
