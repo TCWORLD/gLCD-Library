@@ -18,7 +18,7 @@
 
 //This is how many custom characters you have added to the end of the map. There are no more than 128 allowed.
 #define numberOfCustomCharacters 9
-byte charData[][5] PROGMEM = {
+byte charData[96 + numberOfCustomCharacters][5] PROGMEM = {
 	{0x00 , 0x00 , 0x00 , 0x00 , 0x00 }, // 32 = <space>
 	{0x00 , 0x06 , 0x5F , 0x06 , 0x00 }, // 33 = !
 	{0x07 , 0x03 , 0x00 , 0x07 , 0x03 }, // 34 = "
@@ -566,7 +566,7 @@ void gLCD::Print(String text, unsigned char X1, unsigned char Y1, byte Font){
 			} else if ((char2print < 32)&&(char2print > max)&&(max < 0)){ //The > max allows for the 'numberOfCustomCharacters' custom characters to be used
 				//If it is not a printable character, print a space instead.
 				char2print = 0;
-			} else if ((char2print < 32)||(char2print > max)){ //The > max allows for the 'numberOfCustomCharacters' custom characters to be used
+			} else if (((char2print < 32)||(char2print > max))&&(max > 0)){ //The > max allows for the 'numberOfCustomCharacters' custom characters to be used
 				//If it is not a printable character, print a space instead.
 				char2print = 0;
 			} else {
