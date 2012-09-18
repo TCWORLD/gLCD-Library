@@ -1,0 +1,76 @@
+There have been some key changes between these two versions. The changes are designed to make the library easier to use, faster, more efficient, and to better match the arduino naming conventions.
+
+Key changes:
+- Init() has changed to begin()
+- Print(text,x,y,font) has been removed
+- The arduino Print class is now used - print() and println() functions are implemented
+- SetForeColour() is now setForeColour()
+- SetBackColour() is now setBackColour()
+- If \n is used in a string, it causes the display to wrap around onto a new line.
+- There are now global X1, Y1, X2 and Y2 variables, along with a global Font and Format. This allows consecutive calls to the display functions without having to repeatedly specify these variables.
+
+------------------------------------------------------------------------------------------------------------------
+Init():
+--------
+In order to save code, the various Init() functions have been combined under a new name to make it easier to use.
+
+the line:
+graphic.Init(...);
+
+becomes:
+graphic.begin(...);
+
+Where the ... is a series of variables as described below
+For EPSON Displays:
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+begin(Xzero, Yzero, InvertColour,EPSON):
+- Initialise the display. This may need changing for certain screens. Xzero and Yzero are (0,0) offset. Invert colour can be used if White appears as black, which it does on some displays.(1 = Invert, 0 = Normal)
+
+
+For Phillips Displays:
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+begin(Xzero, Yzero, InvertColour, PHILLIPS_x) 
+Where the x is a number between 0 and 3 inclusive which selects the correct phillips driver.
+Choose from these four:
+PHILLIPS_0
+PHILLIPS_1
+PHILLIPS_2
+PHILLIPS_3
+If you run the BasicFunctions sketch, then use trial and error to find the correct driver for your screen. Once you have found a driver which the text is not mirrored and is visible, you have found the correct one.
+
+
+
+------------------------------------------------------------------------------------------------------------------
+Print():
+--------
+The Print() function used to use the String class which was memory inefficient and could lead to crashes. It also didn't support floating point.
+By using the arduino print() and println() functions, the library is vastly improved. However the arduino print() function doesn't allow you to set the font or coordinates, so this must be done seperately:
+
+the line:
+graphic.Print("Hello World!",x,y,font);
+
+becomes:
+graphic.setFont(font);
+graphic.setCoordinate(x,y);
+graphic.print("Hello World!"); 
+
+
+
+-----------------------------------------------------------------------------------------------------------------
+SetxxxColour():
+---------------
+SetForeColour() is now setForeColour(), and SetBackColour() is now setBackColour(). This is to better match C++ naming conventions. The functions work the same, the name is just slightly different.
+
+the line:
+SetForeColour(r,g,b);
+
+becomes:
+setForeColour(r,g,b);
+
+It is also now possible to use Hexadecimal colour codes:
+setForeColour(hexColour); //where hex colour is in the format 0xRRGGBB
+This allows for built in colours such as:
+setForeColour(GLCD_WHITE);
+setForeColour(GLCD_BLACK);
+setForeColour(GLCD_GREEN);
+and so on (see the header file for a full list of colours)
