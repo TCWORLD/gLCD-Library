@@ -3,10 +3,26 @@ Should work with MOST of these screens (controller selected by init() call)
 Written by Thomas Carpenter (2011-2012)
 
 ==================================================================================================
-Current Library Version: 2.5
+Current Library Version: 3.0
 
    Date    | Version | Changes
 -----------+---------+-----------------------------------------------------------------------------
+18/09/2012 |    3.0  | - The library has been converted to use the Arduino Print class allowing more familiar
+	   |         |   calls such as print() and println() to be used, rather than the original Print(String,x,y,font).
+	   |         |   The original function now gives an error message explaining the changes.
+	   |         |
+	   |         | - There are now global X1, Y1, X2 and Y2 variables, along with a global Font and Format. This
+	   |         |   allows consecutive calls to the display functions without having to repeatedly specify these
+	   |         |   variables.
+	   |         |
+	   |         | - Fixed the printing function so that the '\n' character moves to a new line on the screen.
+	   |         |
+	   |         | - Change the Init() function to be named begin() to more closely match the arduino style. The 
+	   |         |   function is also now more common between the two displays (no extra variables), making it 
+	   |         |   easier to follow.
+	   |         |
+	   |---------|
+	   |         |
 17/07/2012 |    2.5  | - Added the ability to have many custom characters.
 	   |         |
 01/06/2012 |    2.4  | - Constructor method [gLCD(,,,)] uses built in port decoding from Arduino.h which 

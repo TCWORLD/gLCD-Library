@@ -5,7 +5,26 @@ The library allows communication with both the Phillips and EPSON controllers, s
 
 Please see the example sketches and also the gLCD.h header file for extensive information as to what functions are in the library and how they work.
 
-Note 1: How to initialise screens
+Note 1: How to initialise screens on versions 3.0 and newer
+
+For EPSON Displays:
+------------------------------------------------------------------------------------------------------------
+begin(Xzero, Yzero, InvertColour,EPSON):
+- Initialise the display. This may need changing for certain screens. Xzero and Yzero are (0,0) offset. Invert colour can be used if White appears as black, which it does on some displays.(1 = Invert, 0 = Normal)
+
+
+For Phillips Displays:
+-------------------------------------------------------------------------------------------------------------
+begin(Xzero, Yzero, InvertColour, PHILLIPS_x) 
+Where the x is a number between 0 and 3 inclusive which selects the correct phillips driver.
+Choose from these four:
+PHILLIPS_0
+PHILLIPS_1
+PHILLIPS_2
+PHILLIPS_3
+If you run the BasicFunctions sketch, then use trial and error to find the correct driver for your screen. Once you have found a driver which the text is not mirrored and is visible, you have found the correct one.
+
+Note 1: How to initialise screens on versions PRIOR TO 3.0
 
 For EPSON Displays:
 ------------------------------------------------------------------------------------------------------------
