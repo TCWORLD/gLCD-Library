@@ -1,5 +1,7 @@
 gLCD Library for Arduino 0022,0023, and 1.0. Also 1.0.1 and 1.5.1
 
+https://github.com/TCWORLD/gLCD-Library/downloads
+
 Current Version 3.2
 
 A library for Arduino which allows the communication of the Arduino with a Nokia 128px x 128px display such as those sold by SparkFun Electronics.
