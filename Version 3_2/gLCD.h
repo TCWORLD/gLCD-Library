@@ -4,18 +4,19 @@
 	Written by Thomas Carpenter (2011->2012)
 	
 	==================================================================================================
-	Current Library Version: 3.2
+	Current Library Version: 3.2b
 	
 	   Date    | Version | Changes
 	-----------+---------+-----------------------------------------------------------------------------
+	31/12/2012 |    3.2b | - digitalWrite() is very slow on Due, so added 'High Speed' mode on the Due to improve performance dramatically.
 	22/10/2012 |    3.2  | - Updated the library to include support for the Arduino Due. Note however there is no 'High Speed'
 			   |         |   mode on the Due, it uses digitalWrite() in either mode. This is not an issue as the due is very fast.
 			   |         |
 			   |         | - Added a simple character wrap feature which if selected as part of the font will begin continue printing
 			   |         |   on subsequent lines if the text is too long to fit on the screen.
 			   |         |
-	06/10/2012 |    3.1  | - Added another driver type (EPSON_5). This is for screens that dont support the 3pixel/2byte mode.
-			   |         |   For these a 4pixel/2byte mode is used. In order to not have constant checks for which type of data
+	06/10/2012 |    3.1  | - Added another driver type (EPSON_5). This is for screens that dont support the 3pixel/2DEFAULT_DATA_TYPE mode.
+			   |         |   For these a 4pixel/2DEFAULT_DATA_TYPE mode is used. In order to not have constant checks for which type of data
 			   |         |   mode is being used, there are seperate functions for each, the correct function is set via a function
 			   |         |   pointer. This change is internal, so should not affect existing code.
 			   |         |   Speed should also not be affected, however this has cost 0.5kB to 1kB of program space.
@@ -69,7 +70,7 @@
 			   |         |
 	14/10/2011 |    1.2  | - Written a faster digital write set of functions. This speeds up the display by a factor of 10
 			   |         |
-	09/10/2011 |    1.1  | - Character data array is now stored in PROGMEM to free up 480Bytes of SRAM
+	09/10/2011 |    1.1  | - Character data array is now stored in PROGMEM to free up 480DEFAULT_DATA_TYPEs of SRAM
 			   |	1.0  | - Major rewrite of printing to screen which has massively increased performance.
 			   |         |
 	           |         | - Circles are now filled MUCH faster.
@@ -121,7 +122,7 @@
 															   appears as black, which it does on some displays.(1 = Invert, 0 = Normal)
 															   EPSON specifies that an Epson display is being used
 															   
-		begin(Xzero, Yzero, InvertColour, PHILLIPS_x) - 	   the last byte controls how the phillips display will behave, and requires
+		begin(Xzero, Yzero, InvertColour, PHILLIPS_x) - 	   the last DEFAULT_DATA_TYPE controls how the phillips display will behave, and requires
 															   some trial and error to get right.
 															   First, try setting it to PHILLIPS_0 and observe which way the screen prints
 															   the image onto the screen.
@@ -187,7 +188,7 @@
 									 ----+----+----+-----------------------------------------------------------------------------
 									   1 |  0 |  1 | Draws a circle with border in ForeColour and fill inside it with ForeColour
 									   
-		setFont(Font) - Sets the global font. Font is byte with each bit having a meaning. 
+		setFont(Font) - Sets the global font. Font is DEFAULT_DATA_TYPE with each bit having a meaning. 
 									These are as follows (b7..b3 are ignored)
 								
 									  b2 | b1 | b0 | Meaning
@@ -217,6 +218,40 @@
 	  #include "Arduino.h"
 	#else
 	  #include "WProgram.h"
+	#endif
+	
+	#ifdef _LIB_SAM_
+		#define DEFAULT_DATA_TYPE unsigned int
+		#define DEFAULT_MID_DATA_TYPE unsigned int
+		#define DEFAULT_WIDE_DATA_TYPE unsigned int
+		#define DEFAULT_SIGNED_DATA_TYPE signed int
+		#define DEFAULT_MID_SIGNED_DATA_TYPE signed int
+		#define DEFAULT_WIDE_SIGNED_DATA_TYPE signed int
+		
+		#define setRS() _RS_PORT->PIO_SODR = _RS_MASK
+		#define clrRS() _RS_PORT->PIO_CODR = _RS_MASK
+		#define setCS() _CS_PORT->PIO_SODR = _CS_MASK
+		#define clrCS() _CS_PORT->PIO_CODR = _CS_MASK
+		#define setSCLK() _SCLK_PORT->PIO_SODR = _SCLK_MASK
+		#define clrSCLK() _SCLK_PORT->PIO_CODR = _SCLK_MASK
+		#define setSDATA() _SDATA_PORT->PIO_SODR = _SDATA_MASK
+		#define clrSDATA() _SDATA_PORT->PIO_CODR = _SDATA_MASK
+	#else
+		#define DEFAULT_DATA_TYPE unsigned char
+		#define DEFAULT_MID_DATA_TYPE unsigned int
+		#define DEFAULT_WIDE_DATA_TYPE unsigned long
+		#define DEFAULT_SIGNED_DATA_TYPE signed char
+		#define DEFAULT_MID_SIGNED_DATA_TYPE signed int
+		#define DEFAULT_WIDE_SIGNED_DATA_TYPE signed long
+		
+		#define setRS() *_RS_PORT |= _RS_HIGH
+		#define clrRS() *_RS_PORT &= _RS_LOW
+		#define setCS() *_CS_PORT |= _CS_HIGH
+		#define clrCS() *_CS_PORT &= _CS_LOW
+		#define setSCLK() *_SCLK_PORT |= _SCLK_HIGH
+		#define clrSCLK() *_SCLK_PORT &= _SCLK_LOW
+		#define setSDATA() *_SDATA_PORT |= _SDATA_HIGH
+		#define clrSDATA() *_SDATA_PORT &= _SDATA_LOW
 	#endif
 	
 	#define GLCD_WHITE 0x0F0F0F
@@ -281,123 +316,134 @@
 	
 	class gLCD; //make function pointers valid.
 	typedef void (gLCD::*TwoPixelsMode)();
-	typedef void (gLCD::*SetSendColourMode)(char);
+	typedef void (gLCD::*SetSendColourMode)(DEFAULT_DATA_TYPE);
 	
 	class gLCD : public Print{
 		private:
 			SetSendColourMode setSendColour; //Function pointer to select which setSendColour is used
 			TwoPixelsMode sendTwoPixels; //Function pointer to select which twoPixels is used
 		public:
-			gLCD(byte RS, byte CS, byte SCLK, byte SDATA, SpeedMode speed = NORMAL_SPEED); //Constructor. 'speed' can be omitted in call. 
+			gLCD(DEFAULT_DATA_TYPE RS, DEFAULT_DATA_TYPE CS, DEFAULT_DATA_TYPE SCLK, DEFAULT_DATA_TYPE SDATA, SpeedMode speed = NORMAL_SPEED); //Constructor. 'speed' can be omitted in call. 
 			//function declarations
 	#if ARDUINO >= 100
-			virtual size_t write(const uint8_t *buffer, size_t size);//
-			virtual size_t write(const uint8_t character);//
+			virtual size_t write(const unsigned char *buffer, size_t size);//
+			virtual size_t write(const unsigned char character);//
 	#else
-			virtual void write(const uint8_t *buffer, size_t size);//
-			virtual void write(const uint8_t character);//
+			virtual void write(const unsigned char *buffer, size_t size);//
+			virtual void write(const unsigned char character);//
 	#endif
-			void begin(signed char Xzero, signed char Yzero, boolean InvertColour, DriverType driver);//
-			void Contrast(signed char contrast);//
-			void setForeColour(char Red, char Green, char Blue);//
-			void setForeColour(unsigned long colour);
-			void setBackColour(char Red, char Green, char Blue);//
-			void setBackColour(unsigned long colour);
+			void begin(DEFAULT_SIGNED_DATA_TYPE Xzero, DEFAULT_SIGNED_DATA_TYPE Yzero, DEFAULT_DATA_TYPE InvertColour, DriverType driver);//
+			void Contrast(DEFAULT_SIGNED_DATA_TYPE contrast);//
+			void setForeColour(DEFAULT_DATA_TYPE Red, DEFAULT_DATA_TYPE Green, DEFAULT_DATA_TYPE Blue);//
+			void setForeColour(DEFAULT_WIDE_DATA_TYPE colour);
+			void setBackColour(DEFAULT_DATA_TYPE Red, DEFAULT_DATA_TYPE Green, DEFAULT_DATA_TYPE Blue);//
+			void setBackColour(DEFAULT_WIDE_DATA_TYPE colour);
 			void Clear();//
-			void setFont(byte _Font);//
-			void setFormat(byte _format);
-			//void setFormat(unsigned char _format);//
-			void setCoordinate(unsigned char X, unsigned char Y, byte pair = 1); //setCoordinate(X1,Y1), setCoordinate(X1,Y1,1), setCoordinate(X2,Y2,2)
-			void setCoordinate(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2);//
-			void Plot(unsigned char _X1, unsigned char _Y1, unsigned char Colour);//
-			void Plot(unsigned char _X1, unsigned char _Y1);//
-			void Plot(unsigned char Colour);//
+			void setFont(DEFAULT_DATA_TYPE _Font);//
+			void setFormat(DEFAULT_DATA_TYPE _format);
+			//void setFormat(DEFAULT_DATA_TYPE _format);//
+			void setCoordinate(DEFAULT_SIGNED_DATA_TYPE X, DEFAULT_SIGNED_DATA_TYPE Y, DEFAULT_DATA_TYPE pair = 1); //setCoordinate(X1,Y1), setCoordinate(X1,Y1,1), setCoordinate(X2,Y2,2)
+			void setCoordinate(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2);//
+			void Plot(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_DATA_TYPE Colour);//
+			void Plot(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1);//
+			void Plot(DEFAULT_DATA_TYPE Colour);//
 			void Plot();//
-			void Line(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2, byte _format);//
-			void Line(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2);//
-			void Line(byte _format);//
+			void Line(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2, DEFAULT_DATA_TYPE _format);//
+			void Line(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2);//
+			void Line(DEFAULT_DATA_TYPE _format);//
 			void Line();//
-			void Box(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2, byte _format);//
-			void Box(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2);//
-			void Box(byte _format);//
+			void Box(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2, DEFAULT_DATA_TYPE _format);//
+			void Box(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2);//
+			void Box(DEFAULT_DATA_TYPE _format);//
 			void Box();//
-			void Circle(unsigned char _X1, unsigned char _Y1, unsigned char Radius, byte _format);//
-			void Circle(unsigned char _X1, unsigned char _Y1, unsigned char Radius);//
-			void Circle(unsigned char Radius, byte _format);//
-			void Circle(unsigned char Radius);//
+			void Circle(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_DATA_TYPE Radius, DEFAULT_DATA_TYPE _format);//
+			void Circle(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_DATA_TYPE Radius);//
+			void Circle(DEFAULT_DATA_TYPE Radius, DEFAULT_DATA_TYPE _format);//
+			void Circle(DEFAULT_DATA_TYPE Radius);//
 			void displayOn();//
 			void displayOff();//
 			void testPattern();//
 			
 			//This allows direct window writes, for example bitmap creation
-			void twoPixels(byte SendR1G1, byte SendB1R2, byte SendG2B2, byte SendFourth); //Forth byte is only relevant for _EPSON_16bit
-			void twoPixels(byte SendR1G1, byte SendB1R2, byte SendG2B2);
-			void twoPixels(byte SendR1, byte SendG1, byte SendB1, byte SendR2, byte SendG2, byte SendB2);//
-			void Window(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2);//
+			void twoPixels(DEFAULT_DATA_TYPE SendR1G1, DEFAULT_DATA_TYPE SendB1R2, DEFAULT_DATA_TYPE SendG2B2, DEFAULT_DATA_TYPE SendFourth); //Forth DEFAULT_DATA_TYPE is only relevant for _EPSON_16bit
+			void twoPixels(DEFAULT_DATA_TYPE SendR1G1, DEFAULT_DATA_TYPE SendB1R2, DEFAULT_DATA_TYPE SendG2B2);
+			void twoPixels(DEFAULT_DATA_TYPE SendR1, DEFAULT_DATA_TYPE SendG1, DEFAULT_DATA_TYPE SendB1, DEFAULT_DATA_TYPE SendR2, DEFAULT_DATA_TYPE SendG2, DEFAULT_DATA_TYPE SendB2);//
+			void Window(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2);//
 			void Window();//
-			void Configure(boolean normal); //1 = Normal, 0 = Bitmap (BMP files work best with this, though still a little buggy)
+			void Configure(DEFAULT_DATA_TYPE normal); //1 = Normal, 0 = Bitmap (BMP files work best with this, though still a little buggy)
 		private:
-			void SendByte(DataType Command, unsigned char data);
-			void setSendColour16bit(char Colour);
-			void setSendColour12bit(char Colour);
+			void SendByte(DataType Command, DEFAULT_DATA_TYPE data);
+			void setSendColour16bit(DEFAULT_DATA_TYPE Colour);
+			void setSendColour12bit(DEFAULT_DATA_TYPE Colour);
 			void two16bitPixels();
 			void two12bitPixels();
-			void twoPixels(char Colour);
-			void RedGreen(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2);
-			void GreenBlue(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2);
-			void BlueRed(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2);
-			void ColourBars(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2);
-			void CirclePlot(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2);
-			void CircleFill(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2);
-			void systemPlot(unsigned char _X1, unsigned char _Y1, unsigned char Colour);//
-			void systemPlot(unsigned char _X1, unsigned char _Y1);
+			void twoPixels(DEFAULT_DATA_TYPE Colour);
+			void RedGreen(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2);
+			void GreenBlue(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2);
+			void BlueRed(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2);
+			void ColourBars(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2);
+			void CirclePlot(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2);
+			void CircleFill(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2);
+			void systemPlot(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_DATA_TYPE Colour);//
+			void systemPlot(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1);
 			
 			//Variables
-			byte _RS;
-			byte _CS;
-			byte _SCLK;
-			byte _SDATA;
-			volatile uint8_t* _RS_PORT;
-			volatile uint8_t* _CS_PORT;
-			volatile uint8_t* _SCLK_PORT;
-			volatile uint8_t* _SDATA_PORT;
-			byte _RS_HIGH;
-			byte _CS_HIGH;
-			byte _SCLK_HIGH;
-			byte _SDATA_HIGH;
-			byte _RS_LOW;
-			byte _CS_LOW;
-			byte _SCLK_LOW;
-			byte _SDATA_LOW;
+			DEFAULT_DATA_TYPE _RS;
+			DEFAULT_DATA_TYPE _CS;
+			DEFAULT_DATA_TYPE _SCLK;
+			DEFAULT_DATA_TYPE _SDATA;
+#ifndef _LIB_SAM_
+			volatile DEFAULT_DATA_TYPE* _RS_PORT;
+			volatile DEFAULT_DATA_TYPE* _CS_PORT;
+			volatile DEFAULT_DATA_TYPE* _SCLK_PORT;
+			volatile DEFAULT_DATA_TYPE* _SDATA_PORT;
+			DEFAULT_DATA_TYPE _RS_HIGH;
+			DEFAULT_DATA_TYPE _CS_HIGH;
+			DEFAULT_DATA_TYPE _SCLK_HIGH;
+			DEFAULT_DATA_TYPE _SDATA_HIGH;
+			DEFAULT_DATA_TYPE _RS_LOW;
+			DEFAULT_DATA_TYPE _CS_LOW;
+			DEFAULT_DATA_TYPE _SCLK_LOW;
+			DEFAULT_DATA_TYPE _SDATA_LOW;
+#else
+			Pio* _RS_PORT;
+			Pio* _CS_PORT;
+			Pio* _SCLK_PORT;
+			Pio* _SDATA_PORT;
+			DEFAULT_DATA_TYPE _SDATA_MASK;
+			DEFAULT_DATA_TYPE _SCLK_MASK;
+			DEFAULT_DATA_TYPE _CS_MASK;
+			DEFAULT_DATA_TYPE _RS_MASK;
+#endif
 			boolean _fast;
-			byte _normalScan;
-			byte _inverseScan;
+			DEFAULT_DATA_TYPE _normalScan;
+			DEFAULT_DATA_TYPE _inverseScan;
 			
-			char _SendRG;
-			char _SendBR;
-			char _SendGB;
-			char _SendFourth; //This is used by EPSON_5 as they have a wierd 16bit colour arrangement.
+			DEFAULT_DATA_TYPE _SendRG;
+			DEFAULT_DATA_TYPE _SendBR;
+			DEFAULT_DATA_TYPE _SendGB;
+			DEFAULT_DATA_TYPE _SendFourth; //This is used by EPSON_5 as they have a wierd 16bit colour arrangement.
 			
-			char _ForeRed;
-			char _ForeGreen;
-			char _ForeBlue;
-			char _BackRed;
-			char _BackGreen;
-			char _BackBlue;
+			DEFAULT_DATA_TYPE _ForeRed;
+			DEFAULT_DATA_TYPE _ForeGreen;
+			DEFAULT_DATA_TYPE _ForeBlue;
+			DEFAULT_DATA_TYPE _BackRed;
+			DEFAULT_DATA_TYPE _BackGreen;
+			DEFAULT_DATA_TYPE _BackBlue;
 			
-			char _Yzero;
-			char _Xzero;
+			DEFAULT_SIGNED_DATA_TYPE _Yzero;
+			DEFAULT_SIGNED_DATA_TYPE _Xzero;
 			
-			byte Font;
-			unsigned char format;
-			unsigned char X1;
-			unsigned char Y1;
-			unsigned char X2;
-			unsigned char Y2;
+			DEFAULT_DATA_TYPE Font;
+			DEFAULT_DATA_TYPE format;
+			DEFAULT_SIGNED_DATA_TYPE X1;
+			DEFAULT_SIGNED_DATA_TYPE Y1;
+			DEFAULT_SIGNED_DATA_TYPE X2;
+			DEFAULT_SIGNED_DATA_TYPE Y2;
 			
-			signed char _contrast;
+			DEFAULT_SIGNED_DATA_TYPE _contrast;
 		public:
-			char _Phillips;
+			DEFAULT_DATA_TYPE _Phillips;
 			DriverType _driver;
 	};
 	

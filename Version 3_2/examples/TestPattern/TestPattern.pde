@@ -31,6 +31,7 @@ const char Data = 11;
   Note, it is also possible to enable a high speed mode which increases the speed of the display
   by a factor of >5. This is done through the library bypassing the digitalWrite function and
   directly addressing port registers. 
+  For the Due, High speed mode increases speed to such an extent that this example completes before you can blink.
   
   Please note that while this doesn't affect how you use the library (it is all handled internally),
   it is possible that it may run too fast for your display and thus the display will appear to not work. 
@@ -41,7 +42,7 @@ const char Data = 11;
   
 */
 //For normal speed, use:
-gLCD graphic(RST,CS,Clk,Data,NORMAL_SPEED); //Normal speed -> for the Arduino Due, the speed parameter is ignored.
+gLCD graphic(RST,CS,Clk,Data,NORMAL_SPEED); //Normal speed
 
 //For high speed, use:
 // gLCD graphic(RST,CS,Clk,Data,HIGH_SPEED); //High speed

@@ -4,7 +4,7 @@
 	Code written by Thomas Carpenter (2011)
 	
 	==================================================================================================
-	Current Library Version: 3.2
+	Current Library Version: 3.2b
 	
 	See header file for function descriptions and ChangeLog
 	
@@ -25,7 +25,7 @@
 
 //This is how many custom characters you have added to the end of the map. There are no more than 128 allowed.
 #define numberOfCustomCharacters 9
-PGMSPACE byte charData[96 + numberOfCustomCharacters][5] = {
+PGMSPACE DEFAULT_DATA_TYPE charData[96 + numberOfCustomCharacters][5] = {
 	{0x00 , 0x00 , 0x00 , 0x00 , 0x00 }, // 32 = <space>
 	{0x00 , 0x06 , 0x5F , 0x06 , 0x00 }, // 33 = !
 	{0x07 , 0x03 , 0x00 , 0x07 , 0x03 }, // 34 = "
@@ -136,7 +136,7 @@ PGMSPACE byte charData[96 + numberOfCustomCharacters][5] = {
 	{0x3C , 0x60 , 0x4F , 0x60 , 0x3C },  // -121 = Power
 };
 
-gLCD::gLCD(byte RS, byte CS, byte SCLK, byte SDATA, SpeedMode speed){
+gLCD::gLCD(DEFAULT_DATA_TYPE RS, DEFAULT_DATA_TYPE CS, DEFAULT_DATA_TYPE SCLK, DEFAULT_DATA_TYPE SDATA, SpeedMode speed){
 	_fast = speed;
 
 	pinMode(RS, OUTPUT);
@@ -148,12 +148,12 @@ gLCD::gLCD(byte RS, byte CS, byte SCLK, byte SDATA, SpeedMode speed){
 	pinMode(SDATA, OUTPUT);
 	_SDATA = SDATA;
 
-#ifndef _LIB_SAM_
 	if(speed){
-		byte RSport = digitalPinToPort(RS);
-		byte CSport = digitalPinToPort(CS);
-		byte SCLKport = digitalPinToPort(SCLK);
-		byte SDATAport = digitalPinToPort(SDATA);
+#ifndef _LIB_SAM_
+		unsigned char RSport = digitalPinToPort(RS);
+		unsigned char CSport = digitalPinToPort(CS);
+		unsigned char SCLKport = digitalPinToPort(SCLK);
+		unsigned char SDATAport = digitalPinToPort(SDATA);
 		
 		if ((   RSport == NOT_A_PIN) ||
 			(   CSport == NOT_A_PIN) ||
@@ -175,8 +175,26 @@ gLCD::gLCD(byte RS, byte CS, byte SCLK, byte SDATA, SpeedMode speed){
 			_SDATA_HIGH = digitalPinToBitMask(SDATA);
 			_SDATA_LOW = ~_SDATA_HIGH;
 		}
-	}
+#else
+		if ((g_APinDescription[RS].ulPinType == PIO_NOT_A_PIN) ||
+			(g_APinDescription[CS].ulPinType == PIO_NOT_A_PIN) ||
+			(g_APinDescription[SCLK].ulPinType == PIO_NOT_A_PIN) ||
+			(g_APinDescription[SDATA].ulPinType == PIO_NOT_A_PIN) )
+		{
+			_fast = 0; //Not a correct register, so use digitalWrite
+		} else {
+			_RS_PORT = g_APinDescription[RS].pPort;
+			_CS_PORT = g_APinDescription[CS].pPort;
+			_SCLK_PORT = g_APinDescription[SCLK].pPort;
+			_SDATA_PORT = g_APinDescription[SDATA].pPort;
+			
+			_RS_MASK = g_APinDescription[RS].ulPin;
+			_CS_MASK = g_APinDescription[CS].ulPin;
+			_SCLK_MASK = g_APinDescription[SCLK].ulPin;
+			_SDATA_MASK = g_APinDescription[SDATA].ulPin;
+		}
 #endif
+	}
 
 	_contrast = 126; //In otherwords, use default unless told otherwise
 	
@@ -184,33 +202,33 @@ gLCD::gLCD(byte RS, byte CS, byte SCLK, byte SDATA, SpeedMode speed){
 	//_LCDheight = 132;
 }
 
-void gLCD::setForeColour(char Red, char Green, char Blue){
+void gLCD::setForeColour(DEFAULT_DATA_TYPE Red, DEFAULT_DATA_TYPE Green, DEFAULT_DATA_TYPE Blue){
 	_ForeRed = Red & 0x0F;
 	_ForeGreen = Green & 0x0F;
 	_ForeBlue = Blue & 0x0F;
 }
 
-void gLCD::setBackColour(char Red, char Green, char Blue){
+void gLCD::setBackColour(DEFAULT_DATA_TYPE Red, DEFAULT_DATA_TYPE Green, DEFAULT_DATA_TYPE Blue){
 	_BackRed = Red & 0x0F;
 	_BackGreen = Green & 0x0F;
 	_BackBlue = Blue & 0x0F;
 }
 
-void gLCD::setForeColour(unsigned long colour){
+void gLCD::setForeColour(DEFAULT_WIDE_DATA_TYPE colour){
 	_ForeRed = (colour >> 16) & 0x0F;
 	_ForeGreen = (colour >> 8) & 0x0F;
 	_ForeBlue = colour & 0x0F;
 }
 
-void gLCD::setBackColour(unsigned long colour){
+void gLCD::setBackColour(DEFAULT_WIDE_DATA_TYPE colour){
 	_BackRed = (colour >> 16) & 0x0F;
 	_BackGreen = (colour >> 8) & 0x0F;
 	_BackBlue = colour & 0x0F;
 }
 
 //This one is inefficient and not used internally, but it is useful in certain situations
-void gLCD::twoPixels(byte SendR1, byte SendG1, byte SendB1, byte SendR2, byte SendG2, byte SendB2){
-	byte SendR1G1,SendB1R2,SendG2B2,SendFourth;
+void gLCD::twoPixels(DEFAULT_DATA_TYPE SendR1, DEFAULT_DATA_TYPE SendG1, DEFAULT_DATA_TYPE SendB1, DEFAULT_DATA_TYPE SendR2, DEFAULT_DATA_TYPE SendG2, DEFAULT_DATA_TYPE SendB2){
+	DEFAULT_DATA_TYPE SendR1G1,SendB1R2,SendG2B2,SendFourth;
 	if(_driver & 0x01){
 		SendR1G1 = SendR1;
 		SendB1R2 = (SendG1 << 4) | (SendB1 & 0x0F);
@@ -227,14 +245,14 @@ void gLCD::twoPixels(byte SendR1, byte SendG1, byte SendB1, byte SendR2, byte Se
 }
 
 //This one is not used internally, but it is useful in certain situations
-void gLCD::twoPixels(byte SendR1G1, byte SendB1R2, byte SendG2B2){
+void gLCD::twoPixels(DEFAULT_DATA_TYPE SendR1G1, DEFAULT_DATA_TYPE SendB1R2, DEFAULT_DATA_TYPE SendG2B2){
 	//Add both pixels to the window
 	SendByte(_parameter, SendR1G1);
 	SendByte(_parameter, SendB1R2);
 	SendByte(_parameter, SendG2B2);
 }
 
-void gLCD::twoPixels(byte SendR1G1, byte SendB1R2, byte SendG2B2, byte SendFourth){
+void gLCD::twoPixels(DEFAULT_DATA_TYPE SendR1G1, DEFAULT_DATA_TYPE SendB1R2, DEFAULT_DATA_TYPE SendG2B2, DEFAULT_DATA_TYPE SendFourth){
 	//Add both pixels to the window
 	SendByte(_parameter, SendR1G1);
 	SendByte(_parameter, SendB1R2);
@@ -243,10 +261,10 @@ void gLCD::twoPixels(byte SendR1G1, byte SendB1R2, byte SendG2B2, byte SendFourt
 }
 
 
-void gLCD::setSendColour16bit(char Colour){
+void gLCD::setSendColour16bit(DEFAULT_DATA_TYPE Colour){
 	//Get type for each pixel
-	int pixelOne = Colour & 1;
-	int pixelTwo = (Colour >> 1) & 1;
+	DEFAULT_DATA_TYPE pixelOne = Colour & 1;
+	DEFAULT_DATA_TYPE pixelTwo = (Colour >> 1) & 1;
 	
 	//For 16bit:
 	//Pixel data is in the format:   RRRRRGGG GGGBBBBB RRRRRGGG GGGBBBBB, where this is  two pixels worth of data
@@ -269,10 +287,10 @@ void gLCD::setSendColour16bit(char Colour){
 	}
 }
 	
-void gLCD::setSendColour12bit(char Colour){
+void gLCD::setSendColour12bit(DEFAULT_DATA_TYPE Colour){
 	//Get type for each pixel
-	int pixelOne = Colour & 1;
-	int pixelTwo = (Colour >> 1) & 1;
+	DEFAULT_DATA_TYPE pixelOne = Colour & 1;
+	DEFAULT_DATA_TYPE pixelTwo = (Colour >> 1) & 1;
 	
 	//For 12 bit:
 	//Pixel data is in the format:   RRRRGGGG BBBBRRRR GGGGBBBB, where this is  two pixels worth of data
@@ -299,7 +317,7 @@ void gLCD::setSendColour12bit(char Colour){
 	}
 }
 
-void gLCD::twoPixels(char Colour){
+void gLCD::twoPixels(DEFAULT_DATA_TYPE Colour){
     (*this.*setSendColour)(Colour);
 	//Add both pixels to the window
 	(*this.*sendTwoPixels)();
@@ -323,7 +341,7 @@ void gLCD::Window(){
 	Window(X1,X2,Y1,Y2); //Use the global coordinates to call the window
 }
 
-void gLCD::Window(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2){
+void gLCD::Window(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2){
 	_X1 = _X1 + _Xzero; //Apply offset to window
 	_Y1 = _Y1 + _Yzero;
 	_X2 = _X2 + _Xzero;
@@ -350,68 +368,63 @@ void gLCD::Window(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsig
 }
 
 
-void gLCD::SendByte(DataType Command, unsigned char data){
+void gLCD::SendByte(DataType Command, DEFAULT_DATA_TYPE data){
 
-		signed char i;
-#ifndef _LIB_SAM_
-		if (_fast){
-			*_RS_PORT |= _RS_HIGH;;					//Startup LCD Communication
-			*_CS_PORT &= _CS_LOW;					//start of sequence
-			
-			//Send Command or parameter
-			*_SCLK_PORT &= _SCLK_LOW;	//Clock 0
-			if(Command){//Send a bit
-				*_SDATA_PORT |= _SDATA_HIGH;
+	DEFAULT_DATA_TYPE i;
+	if (_fast){
+		setRS();								//Startup LCD Communication
+		clrCS();								//start of sequence
+		
+		//Send Command or parameter
+		clrSCLK();								//Clock 0
+		if(Command){							//Send a bit
+			setSDATA();
+		} else {
+			clrSDATA();
+		}	
+		setSCLK();								//Clock 1
+		
+		//Send data	
+		for (i = 0;i < 8; i++){
+			clrSCLK();  						//Clock 0
+			if(data & 0x80){          			//isolate and send a data bit
+				setSDATA();
 			} else {
-				*_SDATA_PORT &= _SDATA_LOW;
-			}	
-			*_SCLK_PORT |= _SCLK_HIGH;	//Clock 1
-			
-			//Send data	
-			for (byte i = 0;i < 8; i++){
-				*_SCLK_PORT &= _SCLK_LOW;  //Clock 0
-				if(data & 0x80){          //isolate and send a data bit
-					*_SDATA_PORT |= _SDATA_HIGH;
-				} else {
-					*_SDATA_PORT &= _SDATA_LOW;
-				}
-				data <<= 1;				//shift the data up
-				*_SCLK_PORT |= _SCLK_HIGH;  //Clock 1
+				clrSDATA();
 			}
-
-			*_CS_PORT |= _CS_HIGH;
-		} else 
-#else
-		if(1)
-#endif
-		{
-			digitalWrite(_RS, 1);					//Startup LCD Communication
-			digitalWrite(_CS, 0);					//start of sequence
-			//Send Command or parameter
-			digitalWrite(_SCLK, 0);					//Clock 0
-			digitalWrite(_SDATA, Command);			//Send a bit
-			digitalWrite(_SCLK, 1);					//Clock 1
-			
-			//Send data
-			/*byte mask = 0x80;
-			for (i = 7;i >= 0; i--){
-				digitalWrite(_SCLK, 0);				//Clock 0
-				digitalWrite(_SDATA, data & mask);		//Send a bit
-				mask >>= 1;
-				digitalWrite(_SCLK, 1);				//Clock 1
-			}*/
-			byte mask = 0x80;
-			while(mask){
-				digitalWrite(_SCLK, 0);				//Clock 0
-				digitalWrite(_SDATA, data & mask);		//Send a bit
-				mask >>= 1;
-				digitalWrite(_SCLK, 1);				//Clock 1
-			}
-			digitalWrite(_CS, 1);					//end of sequence
+			data <<= 1;							//shift the data up
+			setSCLK();  						//Clock 1
 		}
+
+		setCS();								//end of sequence
+	} else {
+		digitalWrite(_RS, 1);					//Startup LCD Communication
+		digitalWrite(_CS, 0);					//start of sequence
+		//Send Command or parameter
+		digitalWrite(_SCLK, 0);					//Clock 0
+		digitalWrite(_SDATA, Command);			//Send a bit
+		digitalWrite(_SCLK, 1);					//Clock 1
+		
+		//Send data
+		/*DEFAULT_DATA_TYPE mask = 0x80;
+		for (i = 7;i >= 0; i--){
+			digitalWrite(_SCLK, 0);				//Clock 0
+			digitalWrite(_SDATA, data & mask);		//Send a bit
+			mask >>= 1;
+			digitalWrite(_SCLK, 1);				//Clock 1
+		}*/
+		DEFAULT_DATA_TYPE mask = 0x80;
+		do {
+			digitalWrite(_SCLK, 0);				//Clock 0
+			digitalWrite(_SDATA, data & mask);		//Send a bit
+			mask >>= 1;
+			digitalWrite(_SCLK, 1);				//Clock 1
+		} while (mask);
+		digitalWrite(_CS, 1);					//end of sequence
+	}
 }
 
-void gLCD::Contrast(signed char contrast){
+void gLCD::Contrast(DEFAULT_SIGNED_DATA_TYPE contrast){
 	_contrast = contrast; 
 	if (_Phillips){
 		if (_contrast > 63){
@@ -435,7 +448,7 @@ void gLCD::Contrast(signed char contrast){
 	}
 }
 
-void gLCD::Configure(boolean normal){
+void gLCD::Configure(DEFAULT_DATA_TYPE normal){
 	if (_Phillips){
 		SendByte(_command, 0x36);           		 //Configure Display
 		if(normal){
@@ -454,30 +467,45 @@ void gLCD::Configure(boolean normal){
 		SendByte(_parameter, 0x02);       		     //colour mode - 4096 colours
 	}
 }
-/*
-void gLCD::Init(char Xzero, char Yzero, boolean InvertColour){
-		
-		_Yzero = Yzero;
-		_Xzero = Xzero;
-		
-		_Phillips = 0;
-		
-		digitalWrite(_RS,0);				 //Reset LCD
 
-		delay(10);  
+void gLCD::begin(DEFAULT_SIGNED_DATA_TYPE Xzero, DEFAULT_SIGNED_DATA_TYPE Yzero, DEFAULT_DATA_TYPE InvertColour, DriverType driver){
+	_driver = driver;
+	_Phillips = (_driver & 0x04) ? 0 : 1;
+	if(_Phillips){
+		sendTwoPixels = &gLCD::two12bitPixels;
+		setSendColour = &gLCD::setSendColour12bit;
+	} else {
+		if(_driver & 0x01) {
+			sendTwoPixels = &gLCD::two16bitPixels;
+			setSendColour = &gLCD::setSendColour16bit;
+		} else {
+			sendTwoPixels = &gLCD::two12bitPixels;
+			setSendColour = &gLCD::setSendColour12bit;
+		}
+	}
+	_Yzero = Yzero;
+	_Xzero = Xzero;
+	
+	digitalWrite(_RS,0);				 //Reset LCD
 
-		digitalWrite(_CS,1); 				 //Select LCD
-		digitalWrite(_SDATA,1);    		 	 //Set Data Pin High
-		digitalWrite(_SCLK,1);      		 //Set Clock Pin High
-		digitalWrite(_RS,1);        		 //Startup LCD
+	delay(30);  
+	
+	//By using digitalWrite for these, the pins will be readied for using direct writes (especially important for Due)
+	digitalWrite(_CS,1); 				 //Select LCD
+	digitalWrite(_SDATA,1);    		 	 //Set Data Pin High
+	digitalWrite(_SCLK,1);      		 //Set Clock Pin High
+	digitalWrite(_RS,1);        		 //Startup LCD
 
-		delay(10);     						 //Wait after Reset
-		
+	delay(30);     						 //Wait after Reset
+	
+	if(_Phillips){
+		SendByte(_command, 0x11);			 //Wake up from sleep mode
+	} else {
 		SendByte(_command, 0xCA);            //Configure Display
 		SendByte(_parameter, 0x00);          //2 divisions, switching period=8 (default)
 		SendByte(_parameter, 0x20);          //nlines/4 - 1 = 132/4 - 1 = 32)
 		SendByte(_parameter, 0x00);          //no inversely highlighted lines
-
+		
 		SendByte(_command, 0xBB);            //Common Output Scan (avoid split display)...
 		SendByte(_parameter, 0x01);          //...Scan 1->69, 69->132
 
@@ -487,71 +515,26 @@ void gLCD::Init(char Xzero, char Yzero, boolean InvertColour){
 
 		SendByte(_command, 0x20);            //Voltage Regulators On
 		SendByte(_parameter, 0x0F);          //Ref voltage, then circuit voltage, then booster
-		
-		if (InvertColour){
-			SendByte(_command, 0xA7);        //Invert Display Colour
-		}
-
-		SendByte(_command, 0xBC);            //Display Control
-		_normalScan = 0x04; 
-		_inverseScan = 0x01;
-		SendByte(_parameter, _normalScan);          //Scan direction (left-->right or right-->left)
-		SendByte(_parameter, 0x00);          //RGB colour order
-		SendByte(_parameter, 0x02);          //colour mode - 4096 colours
-
-		SendByte(_command, 0x81);            //Contrast Control
-		SendByte(_parameter, 0x2B);     	 //0 to 63: sets contrast - 0x2B is default. 
-		SendByte(_parameter, 0x02);			 //Resistor Ratio - 0x02 should be fine for most screens
-
-		delay(100);                          //Allow Power to stablise
-
-		SendByte(_command, 0xAF);            //Display On
-		delay(40);
-
-		setForeColour(0x0F,0x0F,0x0F);		 //Display is White foreground and Blue background
-		setBackColour(0x00,0x00,0x0F);	
-
-		Clear();
-}
-
-void gLCD::Init(char Xzero, char Yzero, boolean InvertColour, boolean Phillips, byte xReverse){
+	}
+	if (InvertColour){
+		SendByte(_command, _Phillips ? 0x20 : 0xA7);        //Invert Display Colour
+	}
 	
-		_Yzero = Yzero;
-		_Xzero = Xzero;
-		
-		_Phillips = 1;
-		
-		digitalWrite(_RS,0);				 //Reset LCD
-
-		delay(30);  
-
-		digitalWrite(_CS,1); 				 //Select LCD
-		digitalWrite(_SDATA,1);    		 	 //Set Data Pin High
-		digitalWrite(_SCLK,1);      		 //Set Clock Pin High
-		digitalWrite(_RS,1);        		 //Startup LCD
-
-		delay(30);     						 //Wait after Reset
-		
-		SendByte(_command, 0x11);			 //Wake up from sleep mode
-		
-		if (InvertColour){
-			SendByte(_command, 0x20);        //Invert Display Colour
-		}
-		
+	if(_Phillips){
 		SendByte(_command, 0x3A);            //Colour Control
 		SendByte(_parameter, 0x03);          //colour mode - 4096 colours
 		
 		SendByte(_command, 0x36);            //Configure Display
-		if (xReverse & 1){ //When xReverse is on, then the value of this parameter is ajusted so that x is mirrored from normal.
-			_normalScan = 0x60 - ((xReverse & 2)<<4);
-			_inverseScan = 0xC0 + ((xReverse & 2)<<4);
+		if (_driver & 1){ //When driver bit 1 is on, then the value of this parameter is ajusted so that x is mirrored from normal.
+			_normalScan = 0x60 - ((_driver & 2)<<4);
+			_inverseScan = 0xC0 + ((_driver & 2)<<4);
 			SendByte(_parameter, _normalScan);      //RGB order, mirror display x or y. 0x60 = RGB, no mirroring
 													//									0x68 = BGR, no mirroring
 													//									0xA0 = RGB, mirror X and Y
 													//									0xA8 = BGR, mirror X and Y
 		} else {
-			_normalScan = 0x20 - ((xReverse & 2)<<4);
-			_inverseScan = 0x80 + ((xReverse & 2)<<4);
+			_normalScan = 0x20 - ((_driver & 2)<<4);
+			_inverseScan = 0x80 + ((_driver & 2)<<4);
 			SendByte(_parameter, _normalScan);      //RGB order, mirror display x or y. 0x20 = RGB, no mirroring
 													//									0x28 = BGR, no mirroring
 													//									0xE0 = RGB, mirror X and Y
@@ -559,116 +542,29 @@ void gLCD::Init(char Xzero, char Yzero, boolean InvertColour, boolean Phillips, 
 		}
 		SendByte(_command, 0x25);            //Contrast Control
 		SendByte(_parameter, 0x30);    		 //-63 to 63: sets contrast - 0x30 is default. 
-		
-		delay(2);
+	} else {
+		SendByte(_command, 0xBC);            //Display Control
+		_normalScan = 0x04; 
+		_inverseScan = 0x01;
+		SendByte(_parameter, _normalScan);          //Scan direction (left-->right or right-->left)
+		SendByte(_parameter, 0x00);          //RGB colour order
+		SendByte(_parameter, (_driver & 0x01) ? 0x04 : 0x02);          //colour mode - 4096 colours (for some EPSON Screens 12bpp isn't supported, so we use 16, but scale up 12bits to fit)
 
-		SendByte(_command, 0x29);            //Display On
-		
-		delay(40);
+		SendByte(_command, 0x81);            //Contrast Control
+		SendByte(_parameter, 0x2B);     	 //0 to 63: sets contrast - 0x2B is default. 
+		SendByte(_parameter, 0x02);			 //Resistor Ratio - 0x02 should be fine for most screens
+	}
+	
+	delay(100);                          //Allow Power to stablise
 
-		setForeColour(0x0F,0x0F,0x0F);		 //Display is White foreground and Blue background
-		setBackColour(0x00,0x00,0x0F);	
+	SendByte(_command, _Phillips?0x29:0xAF);            //Display On
+	
+	delay(40);
 
-		Clear();
-}
-*/
+	setForeColour(0x0F,0x0F,0x0F);		 //Display is White foreground and Blue background
+	setBackColour(0x00,0x00,0x0F);	
 
-void gLCD::begin(signed char Xzero, signed char Yzero, boolean InvertColour, DriverType driver){
-		_driver = driver;
-		_Phillips = (_driver & 0x04) ? 0 : 1;
-		if(_Phillips){
-			sendTwoPixels = &gLCD::two12bitPixels;
-			setSendColour = &gLCD::setSendColour12bit;
-		} else {
-			if(_driver & 0x01) {
-				sendTwoPixels = &gLCD::two16bitPixels;
-				setSendColour = &gLCD::setSendColour16bit;
-			} else {
-				sendTwoPixels = &gLCD::two12bitPixels;
-				setSendColour = &gLCD::setSendColour12bit;
-			}
-		}
-		_Yzero = Yzero;
-		_Xzero = Xzero;
-		
-		digitalWrite(_RS,0);				 //Reset LCD
-
-		delay(30);  
-		
-		digitalWrite(_CS,1); 				 //Select LCD
-		digitalWrite(_SDATA,1);    		 	 //Set Data Pin High
-		digitalWrite(_SCLK,1);      		 //Set Clock Pin High
-		digitalWrite(_RS,1);        		 //Startup LCD
-
-		delay(30);     						 //Wait after Reset
-		
-		if(_Phillips){
-			SendByte(_command, 0x11);			 //Wake up from sleep mode
-		} else {
-			SendByte(_command, 0xCA);            //Configure Display
-			SendByte(_parameter, 0x00);          //2 divisions, switching period=8 (default)
-			SendByte(_parameter, 0x20);          //nlines/4 - 1 = 132/4 - 1 = 32)
-			SendByte(_parameter, 0x00);          //no inversely highlighted lines
-			
-			SendByte(_command, 0xBB);            //Common Output Scan (avoid split display)...
-			SendByte(_parameter, 0x01);          //...Scan 1->69, 69->132
-
-			SendByte(_command, 0xD1);            //Enable Oscillators
-
-			SendByte(_command, 0x94);            //Sleep Out
-
-			SendByte(_command, 0x20);            //Voltage Regulators On
-			SendByte(_parameter, 0x0F);          //Ref voltage, then circuit voltage, then booster
-		}
-		if (InvertColour){
-			SendByte(_command, _Phillips ? 0x20 : 0xA7);        //Invert Display Colour
-		}
-		
-		if(_Phillips){
-			SendByte(_command, 0x3A);            //Colour Control
-			SendByte(_parameter, 0x03);          //colour mode - 4096 colours
-			
-			SendByte(_command, 0x36);            //Configure Display
-			if (_driver & 1){ //When driver bit 1 is on, then the value of this parameter is ajusted so that x is mirrored from normal.
-				_normalScan = 0x60 - ((_driver & 2)<<4);
-				_inverseScan = 0xC0 + ((_driver & 2)<<4);
-				SendByte(_parameter, _normalScan);      //RGB order, mirror display x or y. 0x60 = RGB, no mirroring
-														//									0x68 = BGR, no mirroring
-														//									0xA0 = RGB, mirror X and Y
-														//									0xA8 = BGR, mirror X and Y
-			} else {
-				_normalScan = 0x20 - ((_driver & 2)<<4);
-				_inverseScan = 0x80 + ((_driver & 2)<<4);
-				SendByte(_parameter, _normalScan);      //RGB order, mirror display x or y. 0x20 = RGB, no mirroring
-														//									0x28 = BGR, no mirroring
-														//									0xE0 = RGB, mirror X and Y
-														//									0xE8 = BGR, mirror X and Y
-			}
-			SendByte(_command, 0x25);            //Contrast Control
-			SendByte(_parameter, 0x30);    		 //-63 to 63: sets contrast - 0x30 is default. 
-		} else {
-			SendByte(_command, 0xBC);            //Display Control
-			_normalScan = 0x04; 
-			_inverseScan = 0x01;
-			SendByte(_parameter, _normalScan);          //Scan direction (left-->right or right-->left)
-			SendByte(_parameter, 0x00);          //RGB colour order
-			SendByte(_parameter, (_driver & 0x01) ? 0x04 : 0x02);          //colour mode - 4096 colours (for some EPSON Screens 12bpp isn't supported, so we use 16, but scale up 12bits to fit)
-
-			SendByte(_command, 0x81);            //Contrast Control
-			SendByte(_parameter, 0x2B);     	 //0 to 63: sets contrast - 0x2B is default. 
-			SendByte(_parameter, 0x02);			 //Resistor Ratio - 0x02 should be fine for most screens
-		}
-		
-		delay(100);                          //Allow Power to stablise
-
-		SendByte(_command, _Phillips?0x29:0xAF);            //Display On
-		
-		delay(40);
-
-		setForeColour(0x0F,0x0F,0x0F);		 //Display is White foreground and Blue background
-		setBackColour(0x00,0x00,0x0F);	
-
-		Clear();
+	Clear();
 }
 
 void gLCD::displayOff(){
@@ -696,19 +592,19 @@ void gLCD::Clear(){
 
 	Window(0,0,131,131);			 //Create a window the size of the screen
     (*this.*setSendColour)(0);//All pixels are the same colour, so do the calculation only once
-	for (int i = 0;i < 8844;i++){
+	for (DEFAULT_DATA_TYPE i = 0;i < 8844;i++){
 		(*this.*sendTwoPixels)(); //send the rest using the existing colours
 	}
 }
 
 #if ARDUINO >= 100
-size_t gLCD::write(const uint8_t character){
+size_t gLCD::write(const unsigned char character){
 	char temp[2] = {0};
 	temp[0] = character;
-	return write((uint8_t *)temp,1);
+	return write((const unsigned char *)temp,1);
 }
 #else
-void gLCD::write(const uint8_t character){
+void gLCD::write(const unsigned char character){
 	char temp[2] = {0};
 	temp[0] = character;
 	write(temp,1);
@@ -716,34 +612,33 @@ void gLCD::write(const uint8_t character){
 #endif
 
 #if ARDUINO >= 100
-size_t gLCD::write(const uint8_t *buffer, size_t size){
+size_t gLCD::write(const unsigned char *buffer, size_t size){
 #else
-void gLCD::write(const uint8_t *buffer, size_t size){
+void gLCD::write(const unsigned char *buffer, size_t size){
 #endif	    
 		size_t returnSize = size;
-		int j,k, xcnt, ycnt;
+		DEFAULT_SIGNED_DATA_TYPE j,k, xcnt, ycnt;
 		
-		boolean wrapText = ((Font >> 3) & 1); //Whether to wrap the font.
+		DEFAULT_DATA_TYPE wrapText = ((Font >> 3) & 1); //Whether to wrap the font.
 		
-	    signed char width = (Font & 1) + 1; //Double width (BOLD)
-	    signed char height = ((Font >> 1) & 1) + 1; //Double height (Large text when used with fontwidth)
-		boolean background = ((Font >> 2) & 1); //Whether the text has a background
+	    DEFAULT_DATA_TYPE width = (Font & 1) + 1; //Double width (BOLD)
+	    DEFAULT_DATA_TYPE height = ((Font >> 1) & 1) + 1; //Double height (Large text when used with fontwidth)
+		DEFAULT_DATA_TYPE background = ((Font >> 2) & 1); //Whether the text has a background
 
-		int X = X1;
-		unsigned char _X1 = X1;
-		int startX = X1;
-		int Y = Y1;
-		unsigned char _Y1 = Y1;
-		int startY = Y1;
+		DEFAULT_SIGNED_DATA_TYPE X = X1;
+		DEFAULT_SIGNED_DATA_TYPE _X1 = X1;
+		DEFAULT_SIGNED_DATA_TYPE startX = X1;
+		DEFAULT_SIGNED_DATA_TYPE Y = Y1;
+		DEFAULT_SIGNED_DATA_TYPE _Y1 = Y1;
+		DEFAULT_SIGNED_DATA_TYPE startY = Y1;
 		
 		char char2print;
-		byte data;
-		unsigned char databit;
-		signed char max = 126 + numberOfCustomCharacters;
+		DEFAULT_DATA_TYPE data;
+		DEFAULT_DATA_TYPE databit;
+		DEFAULT_SIGNED_DATA_TYPE max = 126 + numberOfCustomCharacters;
 	    while (size--){         //Start at beginning of string and work along
 			 //Finds the character to print, and adjusts it to a position in the ASCII array
-			char2print = *buffer;
-			buffer++; //increment pointer for next time.
+			char2print = *buffer++; //increment pointer for next time.
 			if (char2print == 13){
 			    //Skip a carraige return
 			} if (char2print == 10){
@@ -764,7 +659,7 @@ void gLCD::write(const uint8_t *buffer, size_t size){
 				char2print -= 32;
 			}
 			
-			byte character = (byte)char2print;
+			DEFAULT_DATA_TYPE character = (DEFAULT_DATA_TYPE)char2print;
 			
 			if(background){
 				//Print the character
@@ -863,127 +758,29 @@ void gLCD::write(const uint8_t *buffer, size_t size){
 }
 #endif	
 
-/*
-void gLCD::Print(String text, unsigned signed char X1, unsigned signed char Y1, byte Font){
-	    
-		int i,j,k, xcnt, ycnt;
-		
-		
-	    signed char width = (Font & 1) + 1; //Double width (BOLD)
-	    signed char height = ((Font >> 1) & 1) + 1; //Double height (Large text when used with fontwidth)
-		boolean background = ((Font >> 2) & 1); //Whether the text has a background
-
-		int X = X1;
-		int startX = X1;
-		int Y = Y1;
-		int startY = Y1;
-		
-		int length = text.length(); //Length of the string to be printed
-
-		char char2print;
-		byte data;
-		unsigned char databit;
-		signed char max = 126 + numberOfCustomCharacters;
-		
-	    for (i=0;i<length;i++){         //Start at beginning of string and work along
-			
-			 //Finds the character to print, and adjusts it to a position in the ASCII array
-			char2print = text.charAt(i);
-			if (char2print == 13){
-				//If it is a carriage return, move to the next line.
-				X1 = startX;
-				X = X1;
-				startY += (8*height);
-				Y1 = startY;
-				Y = Y1;
-				continue; //Move on to next character in string
-			} else if ((char2print < 32)&&(char2print > max)&&(max < 0)){ //The > max allows for the 'numberOfCustomCharacters' custom characters to be used
-				//If it is not a printable character, print a space instead.
-				char2print = 0;
-			} else if (((char2print < 32)||(char2print > max))&&(max > 0)){ //The > max allows for the 'numberOfCustomCharacters' custom characters to be used
-				//If it is not a printable character, print a space instead.
-				char2print = 0;
-			} else {
-				char2print -= 32;
-			}
-			
-			if(background){
-				//Print the character
-				Window(X1,Y1,X1+(6*width)-1,Y1+(8*height)-1);			//Create a window the size of one character, then fill it with the background colour
-				for (xcnt = 0;xcnt < 5;xcnt++){
-					for (j = 0;j < width;j++){
-						if (height == 2){
-							//If double height, each pair of pixels will be the same, and there will be 8 pairs of them.
-							for (ycnt = 0;ycnt < 8;ycnt++){
-								data = pgm_read_byte(&(charData[char2print][xcnt]));
-								databit = (data >> ycnt) & 1;
-								databit |= databit << 1;
-								twoPixels(databit);
-							}
-						} else {
-							//If not height, each pair of pixels will be two distinct pixels, so we need to set the colour for each correctly.
-							for (ycnt = 0;ycnt < 7;ycnt += 2){
-								data = pgm_read_byte(&(charData[char2print][xcnt]));
-								databit = (data >> ycnt) & 3;
-								twoPixels(databit);
-							}
-						}
-					}
-				}
-				//Fill in the character seperator pixels
-				for (j = 0;j < (4*height)*width;j++){
-					twoPixels(0);
-				}
-			} else {
-				//Print the character
-				for (xcnt = 0;xcnt < 5;xcnt++){
-					//Do this once or twice depending on width format
-					for (j = 0;j < width;j++){
-						for (ycnt = 0;ycnt <8;ycnt++){
-							data = pgm_read_byte(&(charData[char2print][xcnt]));
-							databit = (data >> ycnt) & 1; 			//isolate the data bit
-							
-							//Do this once or twice depending on height format
-							for (k = 0;k < height;k++){
-								if(databit){
-									systemPlot(X,Y,3);
-								}
-								Y++;//increase Y offset
-							}
-						}
-						X++; //increase X offset
-						Y = Y1; //Y back to zero offset
-					}
-				}
-			}
-			X1 += (6*width); // Move X position so that next character knows where to be placed
-			X = X1; //X back to zero offset
-	    }
-}
-*/
-void gLCD::systemPlot(unsigned char _X1, unsigned char _Y1, unsigned char Colour){
+void gLCD::systemPlot(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_DATA_TYPE Colour){
 		//The systemPlot function does not set the global coordinate as it may be being used as a reference by an internal function.
 		Window(_X1,_Y1,_X1,_Y1);                          //Creates a window of 1 pixel
 		Colour |= Colour << 1;
 		twoPixels(Colour);
 }
 
-void gLCD::systemPlot(unsigned char _X1, unsigned char _Y1){
+void gLCD::systemPlot(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1){
 		//The systemPlot function does not set the global coordinate as it may be being used as a reference by an internal function.
 		Window(_X1,_Y1,_X1,_Y1);                          //Creates a window of 1 pixel
 		(*this.*sendTwoPixels)();
 }
 
-void gLCD::Plot(unsigned char _X1, unsigned char _Y1, unsigned char Colour){
+void gLCD::Plot(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_DATA_TYPE Colour){
 		setCoordinate(_X1,_Y1);
 		systemPlot(X1,Y1,Colour); //Call the system plot function
 }
 
-void gLCD::Plot(unsigned char _X1, unsigned char _Y1){
+void gLCD::Plot(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1){
 		Plot(_X1,_Y1,format >> 2); //Use the format variable instead
 }
 
-void gLCD::Plot(unsigned char Colour){
+void gLCD::Plot(DEFAULT_DATA_TYPE Colour){
 		systemPlot(X1,Y1,Colour);
 }
 
@@ -991,20 +788,20 @@ void gLCD::Plot(){
 		Plot(format >> 2); //Use the format variable instead
 }
 
-void gLCD::setFormat(byte _format){
+void gLCD::setFormat(DEFAULT_DATA_TYPE _format){
 		format = _format;
 }
 
-void gLCD::setFont(byte _Font) {
+void gLCD::setFont(DEFAULT_DATA_TYPE _Font) {
 		Font = _Font;
 }
 
-void gLCD::setCoordinate(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2){
+void gLCD::setCoordinate(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2){
 		setCoordinate(_X1,_Y1);
 		setCoordinate(_X2,_Y2,2);
 }
 
-void gLCD::setCoordinate(unsigned char X, unsigned char Y, byte pair){
+void gLCD::setCoordinate(DEFAULT_SIGNED_DATA_TYPE X, DEFAULT_SIGNED_DATA_TYPE Y, DEFAULT_DATA_TYPE pair){
 		if(pair == 1){
 			X1 = X;
 			Y1 = Y;
@@ -1014,17 +811,17 @@ void gLCD::setCoordinate(unsigned char X, unsigned char Y, byte pair){
 		}
 }
 
-void gLCD::Circle(unsigned char _X1, unsigned char _Y1, unsigned char Radius){
+void gLCD::Circle(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_DATA_TYPE Radius){
 		setCoordinate(_X1,_Y1);
 		Circle(Radius);
 }
 
-void gLCD::Circle(unsigned char Radius, byte _format){
+void gLCD::Circle(DEFAULT_DATA_TYPE Radius, DEFAULT_DATA_TYPE _format){
 		setFormat(_format);
 		Circle(Radius);
 }
 
-void gLCD::Circle(unsigned char _X1, unsigned char _Y1, unsigned char Radius, byte _format){
+void gLCD::Circle(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_DATA_TYPE Radius, DEFAULT_DATA_TYPE _format){
 		setFormat(_format);
 		Circle(_X1,_Y1,Radius);
 		/*
@@ -1032,19 +829,19 @@ void gLCD::Circle(unsigned char _X1, unsigned char _Y1, unsigned char Radius, by
 		*/
 }
 
-void gLCD::Circle(unsigned char Radius){
-		signed char fillColour = format & 1;
-		signed char nofill = (format >> 1) & 1;
-		signed char borderColour = (format >> 2) & 1;
+void gLCD::Circle(DEFAULT_DATA_TYPE Radius){
+		DEFAULT_DATA_TYPE fillColour = format & 1;
+		DEFAULT_DATA_TYPE nofill = (format >> 1) & 1;
+		DEFAULT_DATA_TYPE borderColour = (format >> 2) & 1;
 		
 		fillColour |= fillColour << 1;
 		borderColour |= borderColour << 1;
 		
-		unsigned char X = Radius;
-		unsigned char Y = 0;
-		signed int error = 0;
-		signed int dx = 1 - (Radius << 1);
-		signed int dy = 1;
+		DEFAULT_DATA_TYPE X = Radius;
+		DEFAULT_DATA_TYPE Y = 0;
+		DEFAULT_MID_SIGNED_DATA_TYPE error = 0;
+		DEFAULT_MID_SIGNED_DATA_TYPE dx = 1 - (Radius << 1);
+		DEFAULT_MID_SIGNED_DATA_TYPE dy = 1;
 		
 		//Have to do it twice if it is filled in unfortunately
 		
@@ -1082,9 +879,9 @@ void gLCD::Circle(unsigned char Radius){
 		}
 }
 
-void gLCD::CircleFill(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2){
+void gLCD::CircleFill(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2){
 
-		int i;
+		DEFAULT_MID_SIGNED_DATA_TYPE i;
 		Window(_X2-_X1,_Y2+_Y1,_X2+_X1,_Y2+_Y1); 
 		for(i = 0; i < _X1; i++){ 
 			(*this.*sendTwoPixels)();
@@ -1103,7 +900,7 @@ void gLCD::CircleFill(unsigned char _X1, unsigned char _Y1, unsigned char _X2, u
 		}
 }
 
-void gLCD::CirclePlot(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2){
+void gLCD::CirclePlot(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2){
 		//Circle is Symmetrical, so we can plot the whole thing having only calculated an octant
 		systemPlot(_X2+_X1,_Y2+_Y1); //Octant 1
 		systemPlot(_X2-_X1,_Y2+_Y1); //Octant 4
@@ -1115,30 +912,30 @@ void gLCD::CirclePlot(unsigned char _X1, unsigned char _Y1, unsigned char _X2, u
 		systemPlot(_X2-_Y1,_Y2-_X1); //Octant 6
 }
 
-void gLCD::Line(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2, byte _format){
+void gLCD::Line(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2, DEFAULT_DATA_TYPE _format){
 		setCoordinate(_X1,_Y1,_X2,_Y2);
 		Line(_format);
 }
 
-void gLCD::Line(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2){
+void gLCD::Line(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2){
 		setCoordinate(_X1,_Y1,_X2,_Y2);
 		Line();
 }
 		
-void gLCD::Line(byte _format){
+void gLCD::Line(DEFAULT_DATA_TYPE _format){
 		setFormat(_format);
 		Line();
 }
 
 void gLCD::Line(){
-		signed char xdir = 1;		 //Amount by which X changes
-		signed char ydir = 1;		 //Amount by which Y changes
-		signed int error;
-		unsigned char i;
-		unsigned char X = X1;
-		unsigned char Y = Y1;
+		DEFAULT_SIGNED_DATA_TYPE xdir = 1;		 //Amount by which X changes
+		DEFAULT_SIGNED_DATA_TYPE ydir = 1;		 //Amount by which Y changes
+		DEFAULT_MID_SIGNED_DATA_TYPE error;
+		DEFAULT_DATA_TYPE i;
+		DEFAULT_SIGNED_DATA_TYPE X = X1;
+		DEFAULT_SIGNED_DATA_TYPE Y = Y1;
 		
-		byte Colour = format >> 2;
+		DEFAULT_DATA_TYPE Colour = format >> 2;
 		Colour |= Colour << 1;
 		(*this.*setSendColour)(Colour);
 		/*
@@ -1147,8 +944,8 @@ void gLCD::Line(){
 		
 		//The algorithm works for only one octant. By reversing the direction, the algorithm can work for 4 of the octants
 		
-		signed int dx = X2 - X; 	 //Change in X
-		signed int dy = Y2 - Y; 	 //Change in Y
+		DEFAULT_MID_SIGNED_DATA_TYPE dx = X2 - X; 	 //Change in X
+		DEFAULT_MID_SIGNED_DATA_TYPE dy = Y2 - Y; 	 //Change in Y
 		
 		if (dx < 0){
 			xdir = -1;
@@ -1159,8 +956,8 @@ void gLCD::Line(){
 			dy = 0 - dy;
 		}
 		
-		signed int dy2 = dy << 1;	 //Change in Y with twice the precision
-		signed int dx2 = dx << 1;	 //Change in X with twice the precision
+		DEFAULT_MID_SIGNED_DATA_TYPE dy2 = dy << 1;	 //Change in Y with twice the precision
+		DEFAULT_MID_SIGNED_DATA_TYPE dx2 = dx << 1;	 //Change in X with twice the precision
 		
 		
 		//By choosing the major axis, one that experiances greatest change, the algorithm will work for all octants
@@ -1197,28 +994,28 @@ void gLCD::Line(){
 		}
 }
 
-void gLCD::Box(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2, byte _format){
+void gLCD::Box(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2, DEFAULT_DATA_TYPE _format){
 		setCoordinate(_X1,_Y1,_X2,_Y2);
 		Box(_format);
 }
 
-void gLCD::Box(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2){
+void gLCD::Box(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2){
 		setCoordinate(_X1,_Y1,_X2,_Y2);
 		Box();
 }
 		
-void gLCD::Box(byte _format){
+void gLCD::Box(DEFAULT_DATA_TYPE _format){
 		setFormat(_format);
 		Box();
 }
 
 void gLCD::Box(){		
-		signed char fillColour = format & 1;
-		signed char noFill = format & 2;
-		signed char borderColour = (format >> 2) & 1;
+		DEFAULT_DATA_TYPE fillColour = format & 1;
+		DEFAULT_DATA_TYPE noFill = format & 2;
+		DEFAULT_DATA_TYPE borderColour = (format >> 2) & 1;
 		
-		unsigned char dx = (X2 - X1) >> 1;
-		unsigned char dy = (Y2 - Y1) >> 1;
+		DEFAULT_MID_SIGNED_DATA_TYPE dx = (X2 - X1) >> 1;
+		DEFAULT_MID_SIGNED_DATA_TYPE dy = (Y2 - Y1) >> 1;
 		
 		fillColour |= fillColour << 1;
 		borderColour |= borderColour << 1;
@@ -1226,8 +1023,8 @@ void gLCD::Box(){
 		if(!noFill){
 			(*this.*setSendColour)(fillColour);
 			Window(X1,Y1,X2,Y2);		//Create a window for the box
-			for (signed char Y = Y1;Y <= Y2;Y++){
-				for (signed char X = X1;X <= X2;X++){
+			for (DEFAULT_MID_SIGNED_DATA_TYPE Y = Y1;Y <= Y2;Y++){
+				for (DEFAULT_MID_SIGNED_DATA_TYPE X = X1;X <= X2;X++){
 					(*this.*sendTwoPixels)();
 				}
 			}
@@ -1236,34 +1033,34 @@ void gLCD::Box(){
 		//draw border
 		(*this.*setSendColour)(borderColour);
 		Window(X1, Y1, X2, Y1); 
-		for(int i = 0; i <= dx; i++){
+		for(DEFAULT_MID_SIGNED_DATA_TYPE i = 0; i <= dx; i++){
 			(*this.*sendTwoPixels)();
 		}
 		Window(X2, Y1, X2, Y2);
-		for(int i = 0; i <= dy; i++){
+		for(DEFAULT_MID_SIGNED_DATA_TYPE i = 0; i <= dy; i++){
 			(*this.*sendTwoPixels)();
 		}
 		Window(X1, Y2, X2, Y2);
-		for(int i = 0; i <= dx; i++){
+		for(DEFAULT_MID_SIGNED_DATA_TYPE i = 0; i <= dx; i++){
 			(*this.*sendTwoPixels)();
 		}
 		Window(X1, Y1, X1, Y2);
-		for(int i = 0; i <= dy; i++){
+		for(DEFAULT_MID_SIGNED_DATA_TYPE i = 0; i <= dy; i++){
 			(*this.*sendTwoPixels)();
 		}
 }
 
-void gLCD::RedGreen(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2){
-	int dy = (_Y2 - _Y1) >> 4; //Y2 - Y1 should be a multiple of eight when invoking this, otherwise it wont work
-	int dx = (_X2 - _X1) >> 5; //X2 - X1 should be a multiple of sixteen when invoking this, otherwise it wont work
+void gLCD::RedGreen(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2){
+	DEFAULT_DATA_TYPE dy = (_Y2 - _Y1) >> 4; //Y2 - Y1 should be a multiple of eight when invoking this, otherwise it wont work
+	DEFAULT_DATA_TYPE dx = (_X2 - _X1) >> 5; //X2 - X1 should be a multiple of sixteen when invoking this, otherwise it wont work
 	
 	Window(_X1,_Y1,_X2-1,_Y2-1);
-	for (int i = 0;i < 16;i++){
-		for (int k = 0;k < dy;k++){
-			for (int j = 0;j < 16;j++){
+	for (DEFAULT_DATA_TYPE i = 0;i < 16;i++){
+		for (DEFAULT_DATA_TYPE k = 0;k < dy;k++){
+			for (DEFAULT_DATA_TYPE j = 0;j < 16;j++){
 				setForeColour(i,j,0);
 				(*this.*setSendColour)(3);
-				for (int l = 0;l < dx;l++){
+				for (DEFAULT_DATA_TYPE l = 0;l < dx;l++){
 					(*this.*sendTwoPixels)();
 				}
 			} 
@@ -1271,17 +1068,17 @@ void gLCD::RedGreen(unsigned char _X1, unsigned char _Y1, unsigned char _X2, uns
 	}
 }
 
-void gLCD::GreenBlue(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2){
-	int dy = (_Y2 - _Y1) >> 4; //Y2 - Y1 should be a multiple of eight when invoking this, otherwise it wont work
-	int dx = (_X2 - _X1) >> 5; //X2 - X1 should be a multiple of sixteen when invoking this, otherwise it wont work
+void gLCD::GreenBlue(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2){
+	DEFAULT_DATA_TYPE dy = (_Y2 - _Y1) >> 4; //Y2 - Y1 should be a multiple of eight when invoking this, otherwise it wont work
+	DEFAULT_DATA_TYPE dx = (_X2 - _X1) >> 5; //X2 - X1 should be a multiple of sixteen when invoking this, otherwise it wont work
 	
 	Window(_X1,_Y1,_X2-1,_Y2-1);
-	for (int i = 0;i < 16;i++){
-		for (int k = 0;k < dy;k++){
-			for (int j = 0;j < 16;j++){
+	for (DEFAULT_DATA_TYPE i = 0;i < 16;i++){
+		for (DEFAULT_DATA_TYPE k = 0;k < dy;k++){
+			for (DEFAULT_DATA_TYPE j = 0;j < 16;j++){
 				setForeColour(0,i,j);
 				(*this.*setSendColour)(3);
-				for (int l = 0;l < dx;l++){
+				for (DEFAULT_DATA_TYPE l = 0;l < dx;l++){
 					(*this.*sendTwoPixels)();
 				}
 			} 
@@ -1289,17 +1086,17 @@ void gLCD::GreenBlue(unsigned char _X1, unsigned char _Y1, unsigned char _X2, un
 	}
 }
 
-void gLCD::BlueRed(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2){
-	int dy = (_Y2 - _Y1) >> 4; //Y2 - Y1 should be a multiple of eight when invoking this, otherwise it wont work
-	int dx = (_X2 - _X1) >> 5; //X2 - X1 should be a multiple of sixteen when invoking this, otherwise it wont work
+void gLCD::BlueRed(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2){
+	DEFAULT_DATA_TYPE dy = (_Y2 - _Y1) >> 4; //Y2 - Y1 should be a multiple of eight when invoking this, otherwise it wont work
+	DEFAULT_DATA_TYPE dx = (_X2 - _X1) >> 5; //X2 - X1 should be a multiple of sixteen when invoking this, otherwise it wont work
 	
 	Window(_X1,_Y1,_X2-1,_Y2-1);
-	for (int i = 0;i < 16;i++){
-		for (int k = 0;k < dy;k++){
-			for (int j = 0;j < 16;j++){
+	for (DEFAULT_DATA_TYPE i = 0;i < 16;i++){
+		for (DEFAULT_DATA_TYPE k = 0;k < dy;k++){
+			for (DEFAULT_DATA_TYPE j = 0;j < 16;j++){
 				setForeColour(j,0,i);
 				(*this.*setSendColour)(3);
-				for (int l = 0;l < dx;l++){
+				for (DEFAULT_DATA_TYPE l = 0;l < dx;l++){
 					(*this.*sendTwoPixels)();
 				}
 			} 
@@ -1307,12 +1104,12 @@ void gLCD::BlueRed(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsi
 	}
 }
 
-void gLCD::ColourBars(unsigned char _X1, unsigned char _Y1, unsigned char _X2, unsigned char _Y2){
+void gLCD::ColourBars(DEFAULT_SIGNED_DATA_TYPE _X1, DEFAULT_SIGNED_DATA_TYPE _Y1, DEFAULT_SIGNED_DATA_TYPE _X2, DEFAULT_SIGNED_DATA_TYPE _Y2){
 
-	int dy = _Y2 - _Y1;
-	int dx = (_X2 - _X1) >> 4;
+	DEFAULT_DATA_TYPE dy = _Y2 - _Y1;
+	DEFAULT_DATA_TYPE dx = (_X2 - _X1) >> 4;
 	
-	char colour[6][3] = {
+	DEFAULT_DATA_TYPE colour[6][3] = {
 		{15,0,0},
 		{15,15,0},
 		{0,15,0},
@@ -1322,11 +1119,11 @@ void gLCD::ColourBars(unsigned char _X1, unsigned char _Y1, unsigned char _X2, u
 	};
 	
 	Window(_X1,_Y1,_X2-1,_Y2-1);
-	for (int i = 0;i < 6;i++){
+	for (DEFAULT_DATA_TYPE i = 0;i < 6;i++){
 		setForeColour(colour[i][0],colour[i][1],colour[i][2]);
 		(*this.*setSendColour)(3);
-		for (int k = 0;k < dx;k++){
-			for (int j = 0;j < dy;j++){
+		for (DEFAULT_DATA_TYPE k = 0;k < dx;k++){
+			for (DEFAULT_DATA_TYPE j = 0;j < dy;j++){
 				(*this.*sendTwoPixels)();
 			} 
 		}
@@ -1334,11 +1131,11 @@ void gLCD::ColourBars(unsigned char _X1, unsigned char _Y1, unsigned char _X2, u
 	dx = dx << 2;
 	dy = dy >> 5;
 	
-	for (int k = 0;k < dx;k++){
-		for (int j = 0;j < 16;j++){
+	for (DEFAULT_DATA_TYPE k = 0;k < dx;k++){
+		for (DEFAULT_DATA_TYPE j = 0;j < 16;j++){
 			setForeColour(j,j,j);
 			(*this.*setSendColour)(3);
-			for (int l = 0;l < dy;l++){
+			for (DEFAULT_DATA_TYPE l = 0;l < dy;l++){
 				(*this.*sendTwoPixels)();
 			} 
 		}
