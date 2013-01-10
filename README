@@ -1,11 +1,35 @@
-gLCD Library for Arduino 0022,0023, and 1.0. Also 1.0.1 and 1.5.1
+gLCD Library for Arduino 0022,0023, 1.0.[0 to 3], and 1.5.[0,1]
 
 Ready-to-go library folders can be downloaded in ZIP format here:
 https://github.com/TCWORLD/gLCD-Library/tree/master/Downloads
 
-Current Version 3.2b
+------------------------------------------------------------------------------------------------------------
+Current Version 3.3
+-------------------
+Version 3.3 adds support for rotating screens by either 0, 90, 180 or 270 degrees clockwise.
 
-VERSION 3.2b adds HIGH_SPEED mode for the Arduino Due. If you do not have a Due, and have version 3.2, you do not to redownload this version.
+The rotation is specified by adding an extra variable to the end of the begin() call:
+begin(Xzero, Yzero, InvertColour, driver, ROTATION_x)
+where ROTATION_x is one of the following:
+ROTATION_0
+ROTATION_180
+ROTATION_90
+ROTATION_270
+
+(If ROTATION_x is omitted, it will be assumed to be 0degrees so the new version is fully compatible with older versions)
+
+Alternatively rotation can be set by calling:
+setRotation(ROTATION_x);
+
+For displays that use 0degree rotation, no remapping is required at all and so performance is the same as prior versions.
+It should however be noted that rotating the screen by any other amount reduces the performance of the display
+because the coordinates have to be remapped before being send to the screen. 
+
+The impact is mostly confined to text and drawing lines.
+Filling areas such as with Clear() or Box() doesn't require remapping so is unaffected by performance reduction.
+
+------------------------------------------------------------------------------------------------------------
+
 
 A library for Arduino which allows the communication of the Arduino with a Nokia 128px x 128px display such as those sold by SparkFun Electronics.
 The library allows communication with both the Phillips and EPSON controllers, so should work with almost all of these screens(1).
