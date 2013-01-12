@@ -634,7 +634,7 @@ void gLCD::Clear(){
 
 	Window(0,0,131,131);			 //Create a window the size of the screen
     (*this.*setSendColour)(0);//All pixels are the same colour, so do the calculation only once
-	for (DEFAULT_DATA_TYPE i = 0;i < 8844;i++){
+	for (DEFAULT_MID_DATA_TYPE i = 0;i < 8844;i++){
 		(*this.*sendTwoPixels)(); //send the rest using the existing colours
 	}
 }
@@ -982,7 +982,7 @@ void gLCD::Line(){
 		DEFAULT_MID_SIGNED_DATA_TYPE xdir = 1;		 //Amount by which X changes
 		DEFAULT_MID_SIGNED_DATA_TYPE ydir = 1;		 //Amount by which Y changes
 		DEFAULT_MID_SIGNED_DATA_TYPE error;
-		DEFAULT_DATA_TYPE i;
+		DEFAULT_MID_DATA_TYPE i;
 		DEFAULT_MID_SIGNED_DATA_TYPE X = X1;
 		DEFAULT_MID_SIGNED_DATA_TYPE Y = Y1;
 		
