@@ -778,12 +778,12 @@ void gLCD::write(const unsigned char *buffer, size_t size){
 				}
 			}
 			_X1 += (6<<width); // Move X position so that next character knows where to be placed
-			if (wrapText && (128 - _X1 < (6<<width)) && (size > 1)){
+			if (wrapText && (131 - _X1 < (6<<width)) && (size > 1)){
 				//If text wrap is enabled, and there is insufficient space to place the next character, continue on a new line
 				if(background){
-					Window(_X1,_Y1,128,_Y1+(8<<height)-1);			//Create a window the height of one character and to the edge of the screen,
+					Window(_X1,_Y1,131,_Y1+(8<<height)-1);			//Create a window the height of one character and to the edge of the screen,
 					(*this.*setSendColour)(0);						//then fill it with the background colour
-					for (xcnt = 0;xcnt < 128 - _X1;xcnt++){
+					for (xcnt = 0;xcnt <= 131 - _X1;xcnt++){
 						for (ycnt = 0;ycnt < (4<<height);ycnt++){
 							(*this.*sendTwoPixels)();
 						}
