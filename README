@@ -7,9 +7,9 @@ This library is released under the MIT License. Please refer the the file named 
 
 The gLCD folder contains a copy of the current code version to allow the library to be cloned.
 ------------------------------------------------------------------------------------------------------------
-Current Version 3.3
+Current Version 3.3b
 -------------------
-Version 3.3 adds support for rotating screens by either 0, 90, 180 or 270 degrees clockwise.
+Version 3.3b fixes a bug in the support for rotating screens by either 0, 90, 180 or 270 degrees clockwise.
 
 The rotation is specified by adding an extra variable to the end of the begin() call:
 begin(Xzero, Yzero, InvertColour, driver, ROTATION_x)

@@ -4,10 +4,11 @@
 	Written by Thomas Carpenter (2011->2012)
 	
 	==================================================================================================
-	Current Library Version: 3.3
+	Current Library Version: 3.3b
 	
 	   Date    | Version | Changes
 	-----------+---------+-----------------------------------------------------------------------------
+	31/12/2012 |    3.3b | - Bug-fix for rotation. Cures obscure offsets when screen is rotated, and fixes clear() function.
 	10/01/2013 |    3.3  | - Added the ability to rotate the screen by 90, 180 or 270 degrees if the display is upside down.
 			   |         |
 			   |         | - Corrected bug in version 3.2 whereby AVR datatypes for coordinates were CHAR not INT, meaning screens with
@@ -16,7 +17,6 @@
 			   |         | - Improved efficiency of write() function (replaced multiply-by-2 with bitshift)
 			   |         |
 	31/12/2012 |    3.2b | - digitalWrite() is very slow on Due, so added 'High Speed' mode on the Due to improve performance dramatically.
-			   |         |
 	22/10/2012 |    3.2  | - Updated the library to include support for the Arduino Due. Note however there is no 'High Speed'
 			   |         |   mode on the Due, it uses digitalWrite() in either mode. This is not an issue as the due is very fast.
 			   |         |
@@ -391,6 +391,7 @@
 			void Configure(DEFAULT_DATA_TYPE normal); //1 = Normal, 0 = Bitmap (BMP files work best with this, though still a little buggy)
 		private:
 			void mapWindowCoordinates(DEFAULT_MID_SIGNED_DATA_TYPE &_X1, DEFAULT_MID_SIGNED_DATA_TYPE &_Y1, DEFAULT_MID_SIGNED_DATA_TYPE &_X2, DEFAULT_MID_SIGNED_DATA_TYPE &_Y2);//
+			void SendWindow(DEFAULT_MID_SIGNED_DATA_TYPE _X1, DEFAULT_MID_SIGNED_DATA_TYPE _Y1, DEFAULT_MID_SIGNED_DATA_TYPE _X2, DEFAULT_MID_SIGNED_DATA_TYPE _Y2);//
 			void SendByte(DataType Command, DEFAULT_DATA_TYPE data);
 			void setSendColour16bit(DEFAULT_DATA_TYPE Colour);
 			void setSendColour12bit(DEFAULT_DATA_TYPE Colour);

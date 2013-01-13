@@ -4,7 +4,7 @@
 	Code written by Thomas Carpenter (2011)
 	
 	==================================================================================================
-	Current Library Version: 3.3
+	Current Library Version: 3.3b
 	
 	See header file for function descriptions and ChangeLog
 	
@@ -342,8 +342,8 @@ void gLCD::Window(){
 }
 
 void gLCD::mapWindowCoordinates(DEFAULT_MID_SIGNED_DATA_TYPE &_X1, DEFAULT_MID_SIGNED_DATA_TYPE &_Y1, DEFAULT_MID_SIGNED_DATA_TYPE &_X2, DEFAULT_MID_SIGNED_DATA_TYPE &_Y2){
-	static DEFAULT_MID_SIGNED_DATA_TYPE maxX = 128 - _Xzero;
-	static DEFAULT_MID_SIGNED_DATA_TYPE maxY = 128 - _Yzero;
+	static DEFAULT_MID_SIGNED_DATA_TYPE maxX = 131 - _Xzero;
+	static DEFAULT_MID_SIGNED_DATA_TYPE maxY = 131 - _Yzero;
 	//Flip in X
 	if(_rotation & 1){
 		DEFAULT_MID_SIGNED_DATA_TYPE tempX = _X2;
@@ -380,7 +380,10 @@ void gLCD::Window(DEFAULT_MID_SIGNED_DATA_TYPE _X1, DEFAULT_MID_SIGNED_DATA_TYPE
 	//_X2 = _X2 + _Xzero;
 	//_Y2 = _Y2 + _Yzero;
 	mapWindowCoordinates(_X1,_Y1,_X2,_Y2); //Apply window offset and rotate (if needed).
-	
+	SendWindow(_X1,_Y1,_X2,_Y2); //send the window to the screen.
+}
+
+void gLCD::SendWindow(DEFAULT_MID_SIGNED_DATA_TYPE _X1, DEFAULT_MID_SIGNED_DATA_TYPE _Y1, DEFAULT_MID_SIGNED_DATA_TYPE _X2, DEFAULT_MID_SIGNED_DATA_TYPE _Y2){
 	if (_Phillips){
 		SendByte(_command, 0x2A);        //Column adress
 		SendByte(_parameter, _Y1);        //y-Position upper left corner
@@ -632,9 +635,9 @@ void gLCD::displayOn(){
 void gLCD::Clear(){
 	//int i,j;
 
-	Window(0,0,131,131);			 //Create a window the size of the screen
+	SendWindow(0,0,131,131);			 //Create a window the size of the screen
     (*this.*setSendColour)(0);//All pixels are the same colour, so do the calculation only once
-	for (DEFAULT_MID_DATA_TYPE i = 0;i < 8844;i++){
+	for (DEFAULT_MID_DATA_TYPE i = 0;i < 8712;i++){
 		(*this.*sendTwoPixels)(); //send the rest using the existing colours
 	}
 }
@@ -982,7 +985,7 @@ void gLCD::Line(){
 		DEFAULT_MID_SIGNED_DATA_TYPE xdir = 1;		 //Amount by which X changes
 		DEFAULT_MID_SIGNED_DATA_TYPE ydir = 1;		 //Amount by which Y changes
 		DEFAULT_MID_SIGNED_DATA_TYPE error;
-		DEFAULT_MID_DATA_TYPE i;
+		DEFAULT_MID_SIGNED_DATA_TYPE i;
 		DEFAULT_MID_SIGNED_DATA_TYPE X = X1;
 		DEFAULT_MID_SIGNED_DATA_TYPE Y = Y1;
 		
