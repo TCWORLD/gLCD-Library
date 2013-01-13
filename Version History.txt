@@ -7,7 +7,11 @@
   
      Date    | Version | Changes
   -----------+---------+-----------------------------------------------------------------------------
-  31/12/2012 |    3.3b | - Bug-fix for rotation. Cures obscure offsets when screen is rotated, and fixes clear() function.
+  13/01/2013 |    3.4  | - Fixed character wrapping when screen is rotated.
+             |         |
+             |         | - Added operator for ImageRotation to allow it to be incremented/decremented.
+             |         |
+  13/01/2013 |    3.3b | - Bug-fix for rotation. Cures obscure offsets when screen is rotated, and fixes clear() function.
   10/01/2013 |    3.3  | - Added the ability to rotate the screen by 90, 180 or 270 degrees if the display is upside down.
              |         |
              |         | - Corrected bug in version 3.2 whereby AVR datatypes for coordinates were CHAR not INT, meaning screens with

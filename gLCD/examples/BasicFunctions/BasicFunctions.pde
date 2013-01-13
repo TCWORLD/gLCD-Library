@@ -68,13 +68,13 @@ void setup() {
     PHILLIPS_2
     PHILLIPS_3
     
-	
-	To determine the offset (x,y) coordinate, run this example sketch. It will print a 10px x 10px red box
-	in the top left corner of the screen. If that boxes outline does not line up with the corner, try
-	using the offsets. A positive x will shift the screen to the right, negative x to the left. A positve Y
-    will shift the display down, and a negative Y will shift it up.	
-	
-	
+  
+    To determine the offset (x,y) coordinate, run this example sketch. It will print a 10px x 10px red box
+    in the top left corner of the screen. If that boxes outline does not line up with the corner, try
+    using the offsets. A positive x will shift the screen to the right, negative x to the left. A positve Y
+    will shift the display down, and a negative Y will shift it up.  
+  
+  
     For an Epson Screen:
   */
  
@@ -105,7 +105,7 @@ void setup() {
     should work for many screens, so you may not have to use this at all.
     
     Range for phillips: -0x3F to 0x3F
-    Range for EPSON:		0x00 to 0x3F
+    Range for EPSON:    0x00 to 0x3F
   */
  
   //graphic.Contrast(0x2B);
@@ -134,34 +134,34 @@ void loop() {
     
     The final one is: format. This controls how the box will look (b7..b3 are ignored)
 
-						  b2 | b1 | b0 | Meaning
-						 ----+----+----+-----------------------------------------------------------------------------
-						   0 |  1 |  x | Draws a box with just a border of colour BackColour
-						 ----+----+----+-----------------------------------------------------------------------------
-						   1 |  1 |  x | Draws a box with just a border of colour ForeColour
-						 ----+----+----+-----------------------------------------------------------------------------
-						   0 |  0 |  0 | Draws a box with border in BackColour and fill inside it with BackColour
-						 ----+----+----+-----------------------------------------------------------------------------
-						   1 |  0 |  0 | Draws a box with border in ForeColour and fill inside it with BackColour
-						 ----+----+----+-----------------------------------------------------------------------------
-						   0 |  0 |  1 | Draws a box with border in BackColour and fill inside it with ForeColour
-						 ----+----+----+-----------------------------------------------------------------------------
-						   1 |  0 |  1 | Draws a box with border in ForeColour and fill inside it with ForeColour
+              b2 | b1 | b0 | Meaning
+             ----+----+----+-----------------------------------------------------------------------------
+               0 |  1 |  x | Draws a box with just a border of colour BackColour
+             ----+----+----+-----------------------------------------------------------------------------
+               1 |  1 |  x | Draws a box with just a border of colour ForeColour
+             ----+----+----+-----------------------------------------------------------------------------
+               0 |  0 |  0 | Draws a box with border in BackColour and fill inside it with BackColour
+             ----+----+----+-----------------------------------------------------------------------------
+               1 |  0 |  0 | Draws a box with border in ForeColour and fill inside it with BackColour
+             ----+----+----+-----------------------------------------------------------------------------
+               0 |  0 |  1 | Draws a box with border in BackColour and fill inside it with ForeColour
+             ----+----+----+-----------------------------------------------------------------------------
+               1 |  0 |  1 | Draws a box with border in ForeColour and fill inside it with ForeColour
   
-	Or you can use one of the predefined constants:
-	OutlineBackColour = 0b010
-	OutlineForeColour = 0b110
-	SolidBackColour = 0b000
-	BorderForeColour_FillBackColour = 0b100
-	BorderBackColour_FillForeColour = 0b001
-	SolidForeColour = 0b101
-	
-	
+    Or you can use one of the predefined constants:
+    OutlineBackColour = 0b010
+    OutlineForeColour = 0b110
+    SolidBackColour = 0b000
+    BorderForeColour_FillBackColour = 0b100
+    BorderBackColour_FillForeColour = 0b001
+    SolidForeColour = 0b101
+  
+  
     Lets draw a box which starts from (10,10) and is 100 pixes square. So, X1 = 10, 
                                                                            Y1 = 10,
                                                                            X2 = 10 + 99,   <- Because X2,Y2 will be part of the box
                                                                            Y2 = 10 + 99 
-    It will have a border coloured Red, and be filled with the background colour. So, 'format' = 4	
+    It will have a border coloured Red, and be filled with the background colour. So, 'format' = 4  
   */
   graphic.Box(10,10,109,109,4);
   //Or This:
@@ -186,43 +186,43 @@ void loop() {
     
     Then, in setFont(Font), we set the Font. This controls the vertical and horizontal scaling of the text, and also whether it has a solid or transparent background.
                                                                           Font bits have the following meaning: (b7..b4 are ignored - maybe future use)
-								
-									  b2 | b2 | b1 | b0 | Meaning
-									 ----+----+----+----+-----------------------------------------------
-									   0 |  x |  x |  x | Text will be truncated if too long for screen
-									 ----+----+----+----+-----------------------------------------------
-									   1 |  x |  x |  x | Text will be wrapped onto new line if too long
-									 ----+----+----+----+-----------------------------------------------
-									   x |  0 |  x |  x | Text has transparent background
-									 ----+----+----+----+-----------------------------------------------
-									   x |  1 |  x |  x | Text has solid background
-									 ----+----+----+----+-----------------------------------------------
-									   x |  x |  0 |  0 | Text normal. (6 x 8 pixels)
-									 ----+----+----+----+-----------------------------------------------
-									   x |  x |  0 |  1 | Text Wide. (12 x 8 pixels)
-									 ----+----+----+----+-----------------------------------------------
-									   x |  x |  1 |  0 | Text Tall. (6 x 16 pixels)
-									 ----+----+----+----+-----------------------------------------------
-									   x |  x |  1 |  1 | Text Tall and Wide. (12 x 16 pixels)
-	
-	Or you can use one of the predefined constants:
-	Normal_ClearBG = 0b000 = 0
-	Wide_ClearBG = 0b001 = 1
-	Tall_ClearBG = 0b010 = 2
-	Large_ClearBG = 0b011 = 3
-	Normal_SolidBG = 0b100 = 4
-	Wide_SolidBG = 0b101 = 5
-	Tall_SolidBG = 0b110 = 6
-	Large_SolidBG = 0b111 = 7
-	Normal_ClearBG_Wrap = 0b1000 = 8
-	Wide_ClearBG_Wrap = 0b1001 = 9
-	Tall_ClearBG_Wrap = 0b1010 = 10
-	Large_ClearBG_Wrap = 0b1011 = 11
-	Normal_SolidBG_Wrap = 0b1100 = 12
-	Wide_SolidBG_Wrap = 0b1101 = 13
-	Tall_SolidBG_Wrap = 0b1110 = 14
-	Large_SolidBG_Wrap = 0b1111 = 15
-	
+                
+                    b2 | b2 | b1 | b0 | Meaning
+                   ----+----+----+----+-----------------------------------------------
+                     0 |  x |  x |  x | Text will be truncated if too long for screen
+                   ----+----+----+----+-----------------------------------------------
+                     1 |  x |  x |  x | Text will be wrapped onto new line if too long
+                   ----+----+----+----+-----------------------------------------------
+                     x |  0 |  x |  x | Text has transparent background
+                   ----+----+----+----+-----------------------------------------------
+                     x |  1 |  x |  x | Text has solid background
+                   ----+----+----+----+-----------------------------------------------
+                     x |  x |  0 |  0 | Text normal. (6 x 8 pixels)
+                   ----+----+----+----+-----------------------------------------------
+                     x |  x |  0 |  1 | Text Wide. (12 x 8 pixels)
+                   ----+----+----+----+-----------------------------------------------
+                     x |  x |  1 |  0 | Text Tall. (6 x 16 pixels)
+                   ----+----+----+----+-----------------------------------------------
+                     x |  x |  1 |  1 | Text Tall and Wide. (12 x 16 pixels)
+  
+    Or you can use one of the predefined constants:
+    Normal_ClearBG = 0b000 = 0
+    Wide_ClearBG = 0b001 = 1
+    Tall_ClearBG = 0b010 = 2
+    Large_ClearBG = 0b011 = 3
+    Normal_SolidBG = 0b100 = 4
+    Wide_SolidBG = 0b101 = 5
+    Tall_SolidBG = 0b110 = 6
+    Large_SolidBG = 0b111 = 7
+    Normal_ClearBG_Wrap = 0b1000 = 8
+    Wide_ClearBG_Wrap = 0b1001 = 9
+    Tall_ClearBG_Wrap = 0b1010 = 10
+    Large_ClearBG_Wrap = 0b1011 = 11
+    Normal_SolidBG_Wrap = 0b1100 = 12
+    Wide_SolidBG_Wrap = 0b1101 = 13
+    Tall_SolidBG_Wrap = 0b1110 = 14
+    Large_SolidBG_Wrap = 0b1111 = 15
+  
     We then finally call the print function with our text or variable, e.g.
     graphic.print("Some Text");
         See print() in the Arduino Reference for more details.
@@ -262,26 +262,26 @@ void loop() {
     
     The final one is: Format.  This controls how the Circle will look (b7..b3 are ignored)
 
-						  b2 | b1 | b0 | Meaning
-						 ----+----+----+-----------------------------------------------------------------------------
-						   0 |  1 |  x | Draws a Circle with just a border of colour BackColour
-						 ----+----+----+-----------------------------------------------------------------------------
-						   1 |  1 |  x | Draws a Circle with just a border of colour ForeColour
-						 ----+----+----+-----------------------------------------------------------------------------
-						   0 |  0 |  0 | Draws a Circle with border in BackColour and fill inside it with BackColour
-						 ----+----+----+-----------------------------------------------------------------------------
-						   1 |  0 |  0 | Draws a Circle with border in ForeColour and fill inside it with BackColour
-						 ----+----+----+-----------------------------------------------------------------------------
-						   0 |  0 |  1 | Draws a Circle with border in BackColour and fill inside it with ForeColour
-						 ----+----+----+-----------------------------------------------------------------------------
-						   1 |  0 |  1 | Draws a Circle with border in ForeColour and fill inside it with ForeColour
-	Or you can use one of the predefined constants:
-	OutlineBackColour = 0b010
-	OutlineForeColour = 0b110
-	SolidBackColour = 0b000
-	BorderForeColour_FillBackColour = 0b100
-	BorderBackColour_FillForeColour = 0b001
-	SolidForeColour = 0b101
+              b2 | b1 | b0 | Meaning
+             ----+----+----+-----------------------------------------------------------------------------
+               0 |  1 |  x | Draws a Circle with just a border of colour BackColour
+             ----+----+----+-----------------------------------------------------------------------------
+               1 |  1 |  x | Draws a Circle with just a border of colour ForeColour
+             ----+----+----+-----------------------------------------------------------------------------
+               0 |  0 |  0 | Draws a Circle with border in BackColour and fill inside it with BackColour
+             ----+----+----+-----------------------------------------------------------------------------
+               1 |  0 |  0 | Draws a Circle with border in ForeColour and fill inside it with BackColour
+             ----+----+----+-----------------------------------------------------------------------------
+               0 |  0 |  1 | Draws a Circle with border in BackColour and fill inside it with ForeColour
+             ----+----+----+-----------------------------------------------------------------------------
+               1 |  0 |  1 | Draws a Circle with border in ForeColour and fill inside it with ForeColour
+    Or you can use one of the predefined constants:
+    OutlineBackColour = 0b010
+    OutlineForeColour = 0b110
+    SolidBackColour = 0b000
+    BorderForeColour_FillBackColour = 0b100
+    BorderBackColour_FillForeColour = 0b001
+    SolidForeColour = 0b101
   */
   graphic.Circle(66,74,15,4); //Draw circle of radius 10px, filled with the background colour 
   //Or:  
