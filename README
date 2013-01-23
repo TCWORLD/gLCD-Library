@@ -1,16 +1,26 @@
 gLCD Library for Arduino 0022,0023, 1.0.[0 to 3], and 1.5.[0,1]
 
+A library for Arduino which allows the communication of the Arduino with a Nokia 128px x 128px display such as those sold by SparkFun Electronics.
+The library allows communication with both the Phillips and EPSON controllers, so should work with almost all of these screens(1).
+
+Please see the example sketches and also the gLCD.h header file for extensive information as to what functions are in the library and how they work.
+
+
 Ready-to-go library folders can be downloaded in ZIP format here:
 https://github.com/TCWORLD/gLCD-Library/tree/master/Downloads
 
+
 This library is released under the MIT License. Please refer the the file named LICENSE
 
-The gLCD folder contains a copy of the current code version to allow the library to be cloned.
-------------------------------------------------------------------------------------------------------------
-Current Version 3.4
--------------------
 
-------------------------------------------------------------------------------------------------------------
+The gLCD folder contains a copy of the current code version to allow the library to be cloned.
+
+
+---------------------------------------------------------------------------------------
+Current Version 3.4
+---------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------
 Version 3.3 onwards support rotating screens by either 0, 90, 180 or 270 degrees clockwise.
 
 The rotation is specified by adding an extra variable to the end of the begin() call:
@@ -33,24 +43,19 @@ because the coordinates have to be remapped before being send to the screen.
 The impact is mostly confined to text and drawing lines.
 Filling areas such as with Clear() or Box() doesn't require remapping so is unaffected by performance reduction.
 
-------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
 
 
-A library for Arduino which allows the communication of the Arduino with a Nokia 128px x 128px display such as those sold by SparkFun Electronics.
-The library allows communication with both the Phillips and EPSON controllers, so should work with almost all of these screens(1).
-
-Please see the example sketches and also the gLCD.h header file for extensive information as to what functions are in the library and how they work.
-
-Note 1: How to initialise screens on versions 3.0 and newer
+Note 1: How to initialise screens on versions 3.x
 
 For EPSON Displays:
-------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
 begin(Xzero, Yzero, InvertColour,EPSON):
 - Initialise the display. This may need changing for certain screens. Xzero and Yzero are (0,0) offset. Invert colour can be used if White appears as black, which it does on some displays.(1 = Invert, 0 = Normal)
 
 
 For Phillips Displays:
--------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
 begin(Xzero, Yzero, InvertColour, PHILLIPS_x) 
 Where the x is a number between 0 and 3 inclusive which selects the correct phillips driver.
 Choose from these four:
@@ -59,25 +64,3 @@ PHILLIPS_1
 PHILLIPS_2
 PHILLIPS_3
 If you run the BasicFunctions sketch, then use trial and error to find the correct driver for your screen. Once you have found a driver which the text is not mirrored and is visible, you have found the correct one.
-
-Note 1: How to initialise screens on versions PRIOR TO 3.0
-
-For EPSON Displays:
-------------------------------------------------------------------------------------------------------------
-Init(Xzero, Yzero, InvertColour):
-- Initialise the display. This may need changing for certain screens. Xzero and Yzero are (0,0) offset. Invert colour can be used if White appears as black, which it does on some displays.(1 = Invert, 0 = Normal)
-
-
-For Phillips Displays:
--------------------------------------------------------------------------------------------------------------
-Init(Xzero, Yzero, InvertColour, Phillips, xReverse) 
-- If a fourth variable is given, then the Phillips routines will be used (Phillips = 1).
-
-The fifth variable controls scan direction. Phillips displays seem to be more varied in how they behave, so there is an extra variable to allow the correct mode to be found. It requires some trial and error to get right.
-
-First, try setting it to 0 and observe which way the screen prints the image onto the screen.
--If it builds up the image from the LEFT(connector end is the top), 0 is correct.
--If it builds up from the RIGTH, set it to 1 (it should now scan from the LEFT)
--If it builds up from the BOTTOM, set it to 2 (it should now scan from the LEFT, else try 3)
--If it builds up from the TOP, set it to 3 (it should now scan from the LEFT, else try 2)
-
