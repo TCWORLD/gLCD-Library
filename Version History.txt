@@ -1,119 +1,122 @@
-  Sparkfun Nokia knockoff screen 128x128 controller.
 
-  Written by Thomas Carpenter (2011->2012)
-  
-  ==================================================================================================
-  Current Library Version: 3.3
-  
-     Date    | Version | Changes
-  -----------+---------+-----------------------------------------------------------------------------
-  13/01/2013 |    3.4  | - Fixed character wrapping when screen is rotated.
-             |         |
-             |         | - Added operator for ImageRotation to allow it to be incremented/decremented.
-             |         |
-  13/01/2013 |    3.3b | - Bug-fix for rotation. Cures obscure offsets when screen is rotated, and fixes clear() function.
-  10/01/2013 |    3.3  | - Added the ability to rotate the screen by 90, 180 or 270 degrees if the display is upside down.
-             |         |
-             |         | - Corrected bug in version 3.2 whereby AVR datatypes for coordinates were CHAR not INT, meaning screens with
-             |         |   offsets couldn't address last pixels (e.g. 127+3=-125 rather than 130 which resulted in error in pixel address)
-             |         |
-             |         | - Improved efficiency of write() function (replaced multiply-by-2 with bitshift)
-             |         |
-  31/12/2012 |    3.2b | - digitalWrite() is very slow on Due, so added 'High Speed' mode on the Due to improve performance dramatically.
-             |         |
-  22/10/2012 |    3.2  | - Updated the library to include support for the Arduino Due. Note however there is no 'High Speed'
-             |         |   mode on the Due, it uses digitalWrite() in either mode. This is not an issue as the due is very fast.
-             |         |
-             |         | - Added a simple character wrap feature which if selected as part of the font will begin continue printing
-             |         |   on subsequent lines if the text is too long to fit on the screen.
-             |         |
-  06/10/2012 |    3.1  | - Added another driver type (EPSON_5). This is for screens that dont support the 3pixel/2DEFAULT_DATA_TYPE mode.
-             |         |   For these a 4pixel/2DEFAULT_DATA_TYPE mode is used. In order to not have constant checks for which type of data
-             |         |   mode is being used, there are seperate functions for each, the correct function is set via a function
-             |         |   pointer. This change is internal, so should not affect existing code.
-             |         |   Speed should also not be affected, however this has cost 0.5kB to 1kB of program space.
-             |         |
-             |         | - definitions for fonts and formats have been added to improve readability of user code.
-             |         |
-  18/09/2012 |    3.0  | - The library has been converted to use the Arduino Print class allowing more familiar
-             |         |   calls such as print() and println() to be used, rather than the original Print(String,x,y,font).
-             |         |   The original function now gives an error message explaining the changes.
-             |         |
-             |         | - There are now global X1, Y1, X2 and Y2 variables, along with a global Font and Format. This
-             |         |   allows consecutive calls to the display functions without having to repeatedly specify these
-             |         |   variables.
-             |         |
-             |         | - Fixed the printing function so that the '\n' character moves to a new line on the screen.
-             |         |
-             |         | - Change the Init() function to be named begin() to more closely match the arduino style. The 
-             |         |   function is also now more common between the two displays (no extra variables), making it 
-             |         |   easier to follow.
-             |         |
-             |---------|
-             |         |
-  17/07/2012 |    2.5  | - Added the ability to have many custom characters.
-             |         |
-  01/06/2012 |    2.4  | - Constructor method [gLCD(,,,)] uses built in port decoding from Arduino.h which means
-             |         |   that the correct port is automatically determined, and #defines have thus been removed.
-             |         |   This also improves compatibility with other boards including Teensy and Pro.
-             |         |
-  18/01/2012 |    2.3  | - Update Phillips Init() call to also work with screens that would scan
-             |         |   top to bottom before, and thus display fonts wrong (thanks github member: mumps)
-             |         |
-  05/01/2012 |    2.2  | - Corrected printing of Wide fonts (thanks Sparkfun Member #8577)
-             |         |
-  22/12/2011 |    2.1  | - updated twoPixels() to take 6 values (R1,G1,B1,R2,G2,B2) as well as still being able
-             |         |   to take the 3 it did before (R1G1,B1R2,G2B2)
-             |         |
-  03/12/2011 |    2.0  | - Contrast function can now be called at any point in the program (as long as it is
-             |         |   AFTER the init() call). This means that the contrast can now be changed as many
-             |         |   times as you like during the program, without the need to reinitialise the screen.
-             |         | 
-             |         | - Library now supports Ardiuno 1.0
-             |         |
-             |---------|
-             |         |
-  06/11/2011 |    1.4  | - Corrected the drawing of borders when the Box function is called, where before
-             |         |   it used to get the length of the x and y axis lines switched
-             |         | - Added two new functions: displayOff(), which turns the display off to save power,
-             |         |   and displayOn(), which turns it back on again.
-             |         |
-  22/10/2011 |    1.3  | - Added ability to invert phillips display
-             |         |
-  14/10/2011 |    1.2  | - Written a faster digital write set of functions. This speeds up the display by a factor of 10
-             |         |
-  09/10/2011 |    1.1  | - Character data array is now stored in PROGMEM to free up 480DEFAULT_DATA_TYPEs of SRAM
-             |    1.0  | - Major rewrite of printing to screen which has massively increased performance.
-             |         |
-             |         | - Circles are now filled MUCH faster.
-             |         | - Test pattern renders even faster.
-             |         | - More control over colour of circles and boxes.
-             |         |
-             |---------|
-             |         |
-  08/10/2011 |    0.8  | - Fixed Issue with Window() macro and the Epson controller - First pixel was drawn in wrong place.
-             |         |   This required changing the scan direction of the Epson screen, and of the Phillips screen so that
-             |         |   both render the same image in the same orientation.
-             |         | - testPattern() now more efficient and renders much faster.
-             |    0.7  | - Contrast depends heavily on the type of screen, so new function to set contrast has been added.
-             |         | - Added support for Phillips displays, and displays whose colour is inverted (i.e White = Black)
-             |    0.6  | - Fixed Lines not drawing correctly if Y1 > Y2
-             |    0.5  | - Added Examples to show how to use functions
-             |         | - Added Circle drawing algorithm
-             |         | - Can now select colour of the Line() and Plot() as foreground or background colour
-             |    0.4  | - Added co-ordinate offset. (On some displays, (0,0) is not visible) 
-             |         |   Window() function has had the offset built in, as all functions use
-             |         |   it to draw anything on the screen.
-             |         |   Offset is specified when calling Init();
-             |         |
-  07/10/2011 |    0.3  | - Added testPattern Function.
-             |    0.2  | - Fixed functions not working correctly if X or Y were greater than 126.
-             |         | - Increased speed of software SPI
-             |         | - Added Version history
-             |         | - Simplified Box formatting
-             |         |
-  06/10/2011 |    0.1  | - Initial library created with some basic functions
-             |         |
+Sparkfun Nokia knockoff screen 128x128 controller.
+    
+Written by Thomas Carpenter (2011->2012)
+    
+==================================================================================================
+Current Library Version: 3.5
+    
+       Date    | Version | Changes
+    -----------+---------+-----------------------------------------------------------------------------
+    07/02/2013 |    3.5  | - Fixed printing of floating point values, and mult iple strings one after another.
+               |         |   The coordinate for printing was not being updated to represent the end of the string
+               |         |
+    13/01/2013 |    3.4  | - Fixed character wrapping when screen is rotated.
+               |         |
+               |         | - Added operator for ImageRotation to allow it to be incremented/decremented.
+               |         |
+    13/01/2013 |    3.3b | - Bug-fix for rotation. Cures obscure offsets when screen is rotated, and fixes clear() function.
+    10/01/2013 |    3.3  | - Added the ability to rotate the screen by 90, 180 or 270 degrees if the display is upside down.
+               |         |
+               |         | - Corrected bug in version 3.2 whereby AVR datatypes for coordinates were CHAR not INT, meaning screens with
+               |         |   offsets couldn't address last pixels (e.g. 127+3=-125 rather than 130 which resulted in error in pixel address)
+               |         |
+               |         | - Improved efficiency of write() function (replaced multiply-by-2 with bitshift)
+               |         |
+    31/12/2012 |    3.2b | - digitalWrite() is very slow on Due, so added 'High Speed' mode on the Due to improve performance dramatically.
+    22/10/2012 |    3.2  | - Updated the library to include support for the Arduino Due. Note however there is no 'High Speed'
+               |         |   mode on the Due, it uses digitalWrite() in either mode. This is not an issue as the due is very fast.
+               |         |
+               |         | - Added a simple character wrap feature which if selected as part of the font will begin continue printing
+               |         |   on subsequent lines if the text is too long to fit on the screen.
+               |         |
+    06/10/2012 |    3.1  | - Added another driver type (EPSON_5). This is for screens that dont support the 3pixel/2DEFAULT_DATA_TYPE mode.
+               |         |   For these a 4pixel/2DEFAULT_DATA_TYPE mode is used. In order to not have constant checks for which type of data
+               |         |   mode is being used, there are seperate functions for each, the correct function is set via a function
+               |         |   pointer. This change is internal, so should not affect existing code.
+               |         |   Speed should also not be affected, however this has cost 0.5kB to 1kB of program space.
+               |         |
+               |         | - definitions for fonts and formats have been added to improve readability of user code.
+               |         |
+    18/09/2012 |    3.0  | - The library has been converted to use the Arduino Print class allowing more familiar
+               |         |   calls such as print() and println() to be used, rather than the original Print(String,x,y,font).
+               |         |   The original function now gives an error message explaining the changes.
+               |         |
+               |         | - There are now global X1, Y1, X2 and Y2 variables, along with a global Font and Format. This
+               |         |   allows consecutive calls to the display functions without having to repeatedly specify these
+               |         |   variables.
+               |         |
+               |         | - Fixed the printing function so that the '\n' character moves to a new line on the screen.
+               |         |
+               |         | - Change the Init() function to be named begin() to more closely match the arduino style. The 
+               |         |   function is also now more common between the two displays (no extra variables), making it 
+               |         |   easier to follow.
+               |         |
+               |---------|
+               |         |
+    17/07/2012 |    2.5  | - Added the ability to have many custom characters.
+               |         |
+    01/06/2012 |    2.4  | - Constructor method [gLCD(,,,)] uses built in port decoding from Arduino.h which means
+               |         |   that the correct port is automatically determined, and #defines have thus been removed.
+               |         |   This also improves compatibility with other boards including Teensy and Pro.
+               |         |
+    18/01/2012 |    2.3  | - Update Phillips Init() call to also work with screens that would scan
+               |         |   top to bottom before, and thus display fonts wrong (thanks github member: mumps)
+               |         |
+    05/01/2012 |    2.2  | - Corrected printing of Wide fonts (thanks Sparkfun Member #8577)
+               |         |
+    22/12/2011 |    2.1  | - updated twoPixels() to take 6 values (R1,G1,B1,R2,G2,B2) as well as still being able
+               |         |   to take the 3 it did before (R1G1,B1R2,G2B2)
+               |         |
+    03/12/2011 |    2.0  | - Contrast function can now be called at any point in the program (as long as it is
+               |         |   AFTER the init() call). This means that the contrast can now be changed as many
+               |         |   times as you like during the program, without the need to reinitialise the screen.
+               |         | 
+               |         | - Library now supports Ardiuno 1.0
+               |         |
+               |---------|
+               |         |
+    06/11/2011 |    1.4  | - Corrected the drawing of borders when the Box function is called, where before
+               |         |   it used to get the length of the x and y axis lines switched
+               |         | - Added two new functions: displayOff(), which turns the display off to save power,
+               |         |   and displayOn(), which turns it back on again.
+               |         |
+    22/10/2011 |    1.3  | - Added ability to invert phillips display
+               |         |
+    14/10/2011 |    1.2  | - Written a faster digital write set of functions. This speeds up the display by a factor of 10
+               |         |
+    09/10/2011 |    1.1  | - Character data array is now stored in PROGMEM to free up 480DEFAULT_DATA_TYPEs of SRAM
+               |    1.0  | - Major rewrite of printing to screen which has massively increased performance.
+               |         |
+               |         | - Circles are now filled MUCH faster.
+               |         | - Test pattern renders even faster.
+               |         | - More control over colour of circles and boxes.
+               |         |
+               |---------|
+               |         |
+    08/10/2011 |    0.8  | - Fixed Issue with Window() macro and the Epson controller - First pixel was drawn in wrong place.
+               |         |   This required changing the scan direction of the Epson screen, and of the Phillips screen so that
+               |         |   both render the same image in the same orientation.
+               |         | - testPattern() now more efficient and renders much faster.
+               |    0.7  | - Contrast depends heavily on the type of screen, so new function to set contrast has been added.
+               |         | - Added support for Phillips displays, and displays whose colour is inverted (i.e White = Black)
+               |    0.6  | - Fixed Lines not drawing correctly if Y1 > Y2
+               |    0.5  | - Added Examples to show how to use functions
+               |         | - Added Circle drawing algorithm
+               |         | - Can now select colour of the Line() and Plot() as foreground or background colour
+               |    0.4  | - Added co-ordinate offset. (On some displays, (0,0) is not visible) 
+               |         |   Window() function has had the offset built in, as all functions use
+               |         |   it to draw anything on the screen.
+               |         |   Offset is specified when calling Init();
+               |         |
+    07/10/2011 |    0.3  | - Added testPattern Function.
+               |    0.2  | - Fixed functions not working correctly if X or Y were greater than 126.
+               |         | - Increased speed of software SPI
+               |         | - Added Version history
+               |         | - Simplified Box formatting
+               |         |
+    06/10/2011 |    0.1  | - Initial library created with some basic functions
+               |         |
 
 ===================================================================================================
 

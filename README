@@ -17,8 +17,11 @@ The gLCD folder contains a copy of the current code version to allow the library
 
 
 ---------------------------------------------------------------------------------------
-Current Version 3.4
+Current Version 3.5
 ---------------------------------------------------------------------------------------
+
+Version 3.5 fixes a bug that prevented floating point (decimal) numbers being printed.
+
 
 ---------------------------------------------------------------------------------------
 Version 3.3 onwards support rotating screens by either 0, 90, 180 or 270 degrees clockwise.
